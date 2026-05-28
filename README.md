@@ -1,6 +1,79 @@
 # fraudIA - Detector de Posibles Fraudes en Siniestros
 
-Prototipo funcional basado en IA para detectar patrones de posible fraude en siniestros de seguros.
+**Prototipo funcional basado en IA para detectar patrones de posible fraude en siniestros de seguros.**
+
+---
+
+## Estructura Clara (Frontend + Backend separados)
+
+El proyecto está dividido para que sea **muy fácil de ejecutar**:
+
+```
+Fraudia/
+├── backend/          ← Todo el código Python (ML, pipeline, reglas, modelos...)
+├── frontend/         ← La aplicación React (Home profesional del sitio)
+├── design/           ← Scripts y prompts de generación de assets (solo para diseño)
+├── docs/             ← Documentación técnica
+└── README.md
+```
+
+### Cómo ejecutar (muy simple)
+
+#### 1. Backend (Python)
+
+```bash
+cd backend
+pip install -r requirements.txt
+
+# Ejecutar pipeline completo
+python -m src.pipeline.run_all
+
+# O ejecutar la app (cuando esté implementada)
+# python -m src.app.main
+```
+
+#### 2. Frontend (React - El Home del sitio)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abre **http://localhost:5173**
+
+Este es el sitio profesional que se presenta en el hackIAthon.
+
+---
+
+## ✨ Home Profesional del Sitio (React)
+
+El frontend es un sitio **full-bleed profesional** con:
+
+- Diseño que usa todo el contorno del navegador
+- Video `fraudia-hero-sphere-loop.mp4` como animación 3D interactiva a la derecha del Hero
+- Logo y marca muy visibles
+- Demo en vivo del motor de scoring real
+- Alta calidad visual (siguiendo las mejores prácticas de diseño)
+
+**Comando rápido:**
+```bash
+cd frontend
+npm install && npm run dev
+```
+
+---
+
+## Backend (Python / ML)
+
+Todo el sistema de detección de fraude vive en `backend/`:
+
+- `src/` → Código modular (ingesta, features, reglas, modelos, scoring, explicabilidad, agente IA)
+- `data/`, `models/`, `reports/`, `notebooks/`
+
+Todo lo necesario para entrenar y correr el prototipo está dentro de `backend/`.
+
+Esto hace que el proyecto sea mucho más fácil de entender y ejecutar para el equipo y para los jueces del hackIAthon.
 
 ## Arquitectura
 
@@ -15,6 +88,7 @@ fraudIA/
 ├── notebooks/               # Jupyter notebooks (exploración, modelo, evaluación)
 ├── reports/                 # Reportes y gráficos de evaluación
 ├── presentation/            # Presentación ejecutiva
+├── index.html               # Landing page profesional (abre directamente)
 ├── src/                     # Código fuente modular
 │   ├── ingestion/           # Carga y generación de datos
 │   ├── features/            # Feature engineering y preprocesamiento

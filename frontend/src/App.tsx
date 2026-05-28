@@ -1,35 +1,21 @@
-import { Navbar } from './components/Navbar'
-import { Hero } from './components/Hero'
-import { ProblemSection } from './components/ProblemSection'
-import { StatsSection } from './components/StatsSection'
-import { ArchitectureSection } from './components/ArchitectureSection'
-import { HowItWorksSection } from './components/HowItWorksSection'
-import { ModelResultsSection } from './components/ModelResultsSection'
-import { RiskSemaphore } from './components/RiskSemaphore'
-import { EvidenceCode } from './components/EvidenceCode'
-import { LiveRiskDemo } from './components/LiveRiskDemo'
-import { Footer } from './components/Footer'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { AppLoader } from './shared/layout/AppLoader'
+import { SiteShell } from './shared/layout/SiteShell'
+import { DemoPage } from './modules/demo/DemoPage'
+import { HomePage } from './modules/home/HomePage'
 
 function App() {
+  const location = useLocation()
+
   return (
-    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-white text-stone-700">
-      <div className="grain-overlay" />
-      <Navbar />
-
-      <main id="main-content">
-        <Hero />
-        <ProblemSection />
-        <StatsSection />
-        <ArchitectureSection />
-        <HowItWorksSection />
-        <ModelResultsSection />
-        <RiskSemaphore />
-        <EvidenceCode />
-        <LiveRiskDemo />
-      </main>
-
-      <Footer />
-    </div>
+    <SiteShell>
+      <AppLoader key={location.pathname} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/demo" element={<DemoPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </SiteShell>
   )
 }
 

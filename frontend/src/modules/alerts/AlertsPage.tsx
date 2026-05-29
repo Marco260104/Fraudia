@@ -21,8 +21,8 @@ const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo' },
   { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: true },
-  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/demo' },
-  { label: 'Narrativas similares', icon: ShieldCheck, href: '/demo' },
+  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/mapa-siniestros' },
+  { label: 'Narrativas similares', icon: ShieldCheck, href: '/narrativas-similares' },
 ]
 
 const entityMenu = [

@@ -5,6 +5,8 @@ import { AlertsPage } from './modules/alerts/AlertsPage'
 import { CriticalCasesPage } from './modules/critical/CriticalCasesPage'
 import { DemoPage } from './modules/demo/DemoPage'
 import { HomePage } from './modules/home/HomePage'
+import NarrativasSimilaresPage from './modules/narratives/NarrativesPage'
+import MapaSiniestrosPage from './modules/map/MapSiniestrosPage'
 
 function App() {
   const location = useLocation()
@@ -17,6 +19,8 @@ function App() {
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/casos-criticos" element={<CriticalCasesPage />} />
         <Route path="/alertas-ia" element={<AlertsPage />} />
+        <Route path="/mapa-siniestros" element={<MapaSiniestrosPage />} />
+        <Route path="/narrativas-similares" element={<NarrativasSimilaresPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SiteShell>

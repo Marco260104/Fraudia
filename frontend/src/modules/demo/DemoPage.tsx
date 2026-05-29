@@ -22,8 +22,8 @@ const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo', active: true },
   { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/demo' },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/demo' },
+  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros' },
+  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares' },
 ]
 
 const entityMenu = [
@@ -83,6 +83,8 @@ const cases = [
     insured: 'Carlos Méndez',
     date: '28/05/2025',
     branch: 'Vehículos',
+    vehicle: 'KIA Sportage 2021',
+    city: 'Medellín, Antioquia',
     amount: '$28,450',
     score: '89%',
     level: 'Alto',
@@ -92,6 +94,8 @@ const cases = [
     insured: 'Ana Rodríguez',
     date: '28/05/2025',
     branch: 'Vehículos',
+    vehicle: 'Mazda CX-5 2020',
+    city: 'Envigado, Antioquia',
     amount: '$15,230',
     score: '76%',
     level: 'Alto',
@@ -101,6 +105,8 @@ const cases = [
     insured: 'Pedro Gómez',
     date: '27/05/2025',
     branch: 'Vehículos',
+    vehicle: 'Hyundai Tucson 2022',
+    city: 'Bello, Antioquia',
     amount: '$9,890',
     score: '72%',
     level: 'Alto',
@@ -110,6 +116,8 @@ const cases = [
     insured: 'Laura Torres',
     date: '26/05/2025',
     branch: 'Salud',
+    vehicle: 'N/A',
+    city: 'Sabaneta, Antioquia',
     amount: '$6,420',
     score: '65%',
     level: 'Medio',
@@ -119,18 +127,12 @@ const cases = [
     insured: 'Miguel Ramírez',
     date: '26/05/2025',
     branch: 'Hogar',
+    vehicle: 'N/A',
+    city: 'Itagüí, Antioquia',
     amount: '$3,210',
     score: '58%',
     level: 'Medio',
   },
-]
-
-const calculatorFields = [
-  { label: 'Fecha del evento', placeholder: 'dd/mm/aaaa' },
-  { label: 'Ramo', placeholder: 'Seleccionar ramo' },
-  { label: 'Placa del vehiculo', placeholder: 'ABC123' },
-  { label: 'Monto reclamado (COP)', placeholder: '$ 0', wide: true },
-  { label: 'Taller o proveedor', placeholder: 'Seleccionar proveedor', wide: true },
 ]
 
 function AccentBar({ value }: { value: string }) {
@@ -140,7 +142,7 @@ function AccentBar({ value }: { value: string }) {
 export function DemoPage() {
   const [kpiData, setKpiData] = useState(kpis)
   const [claimCases, setClaimCases] = useState(cases)
-  const [activeCase, setActiveCase] = useState<any>(cases[0])
+  const [activeCase, setActiveCase] = useState<(typeof cases)[number]>(cases[0])
 
   // Estados de la calculadora de riesgo
   const [fechaEvento, setFechaEvento] = useState('')

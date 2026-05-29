@@ -63,10 +63,13 @@ const processSteps = [
 ]
 
 const evidenceImages = [
-  { src: '/assets/reports/roc_comparison.png', title: 'ROC' },
-  { src: '/assets/reports/pr_comparison.png', title: 'Precision-Recall' },
-  { src: '/assets/reports/feature_importance.png', title: 'Variables' },
+  { src: '/assets/reports/roc_comparison.png', title: 'Curva ROC (Comparativa)', desc: 'Relación entre tasa de verdaderos y falsos positivos de los modelos.' },
+  { src: '/assets/reports/pr_comparison.png', title: 'Curva Precision-Recall', desc: 'Evaluación del balance entre precisión y exhaustividad para clasificar fraude.' },
+  { src: '/assets/reports/feature_importance.png', title: 'Importancia de Variables (SHAP)', desc: 'Identificación de variables críticas que mayor influencia tienen en el score.' },
+  { src: '/assets/reports/confusion_test_best.png', title: 'Matriz de Confusión (Mejor Modelo)', desc: 'Visualización de aciertos, falsos positivos y falsos negativos en test.' },
+  { src: '/assets/reports/metrics_comparison.png', title: 'Comparativa de Métricas', desc: 'Accuracy, Precision, Recall y F1-score comparados entre algoritmos.' },
 ]
+
 
 export function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
@@ -395,7 +398,7 @@ export function HomePage() {
                 <img src={image.src} alt={image.title} />
                 <figcaption>
                   <strong>{image.title}</strong>
-                  <span>Comparativo desde el entrenamiento del modelo.</span>
+                  <span>{image.desc}</span>
                 </figcaption>
               </figure>
             ))}

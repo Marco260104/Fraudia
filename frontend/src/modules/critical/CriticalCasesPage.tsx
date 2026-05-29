@@ -25,9 +25,9 @@ const mainMenu = [
 ]
 
 const entityMenu = [
-  { label: 'Vehículos', icon: FileText },
-  { label: 'Proveedores', icon: UsersThree },
-  { label: 'Asegurados', icon: UserCircle },
+  { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
+  { label: 'Proveedores', icon: UsersThree, href: '/demo' },
+  { label: 'Asegurados', icon: UserCircle, href: '/demo' },
 ]
 
 const toolMenu = [
@@ -317,7 +317,7 @@ export function CriticalCasesPage() {
                 const Icon = item.icon
 
                 return (
-                  <a key={item.label} href="/demo" className="dashboard-nav-item">
+                  <a key={item.label} href={item.href} className="dashboard-nav-item">
                     <Icon size={18} weight="bold" />
                     <span>{item.label}</span>
                   </a>

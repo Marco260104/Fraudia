@@ -66,7 +66,7 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: Map, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: CarFront, href: '/demo', group: 'entities' },
+  { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Building2, href: '/demo', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/demo', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/demo', group: 'entities' },

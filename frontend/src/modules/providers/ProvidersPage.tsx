@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
+} from 'recharts'
 import {
   Bell, Building, MagnifyingGlass, ShieldCheck,
   UserCircle
@@ -65,6 +68,13 @@ export function ProvidersPage() {
         setLoading(false)
       })
   }, [])
+
+  const paretoData = useMemo(() => {
+    return [...providers]
+      .sort((a, b) => b.siniestros_asociados - a.siniestros_asociados)
+      .slice(0, 5)
+      .map(p => ({ name: p.nombre_proveedor, casos: p.siniestros_asociados }))
+  }, [providers])
 
   return (
     <div className="providers-page">
@@ -293,6 +303,27 @@ export function ProvidersPage() {
 
           {/* SMART CARDS GRID */}
           <section className="smart-cards-section">
+            <div style={{ marginBottom: '32px', background: '#1c1c1f', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Top 5 Proveedores (Principio de Pareto)</h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.875rem', marginTop: '4px' }}>Mayor concentración de siniestros asociados</p>
+              </div>
+              <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={paretoData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+                    <YAxis stroke="#94a3b8" fontSize={12} />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    />
+                    <Bar dataKey="casos" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
             <h2 className="section-title">Grid de Proveedores</h2>
             {error && <div style={{ padding: '8px 12px', background: '#fef2f2', color: '#dc2626', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>{error}</div>}
             {loading ? (

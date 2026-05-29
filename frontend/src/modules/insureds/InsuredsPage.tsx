@@ -54,59 +54,59 @@ type IntelligenceBlock = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
+  { label: 'Casos crÃ­ticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/demo', group: 'tools' },
-  { label: 'Reportes', icon: FileText, href: '/demo', group: 'tools' },
-  { label: 'Configuración', icon: Fingerprint, href: '/demo', group: 'tools' },
+  { label: 'Calculadora de riesgo', icon: Target, href: '/dashboard', group: 'tools' },
+  { label: 'Reportes', icon: FileText, href: '/dashboard', group: 'tools' },
+  { label: 'ConfiguraciÃ³n', icon: Fingerprint, href: '/dashboard', group: 'tools' },
 ]
 
 const intelligenceBlocks: IntelligenceBlock[] = [
   { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue', icon: Activity, bars: [24, 40, 32, 48, 38] },
   { label: 'Consistencia narrativa', value: '94%', tone: 'green', icon: CheckCircle2, bars: [44, 52, 54, 60, 64] },
-  { label: 'Patrón geográfico', value: '88%', tone: 'indigo', icon: MapPin, bars: [28, 36, 45, 50, 52] },
+  { label: 'PatrÃ³n geogrÃ¡fico', value: '88%', tone: 'indigo', icon: MapPin, bars: [28, 36, 45, 50, 52] },
   { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet', icon: Clock3, bars: [18, 30, 26, 34, 40] },
   { label: 'Historial operativo', value: '91%', tone: 'amber', icon: Shield, bars: [42, 44, 48, 55, 58] },
 ]
 
 const timeline = [
-  { year: '2022', title: 'Reclamo menor validado', desc: 'Impacto leve y cierre estándar sin anomalías.', tone: 'green' },
-  { year: '2023', title: 'Cambio de vehículo', desc: 'Actualización de placa y continuidad operativa estable.', tone: 'blue' },
+  { year: '2022', title: 'Reclamo menor validado', desc: 'Impacto leve y cierre estÃ¡ndar sin anomalÃ­as.', tone: 'green' },
+  { year: '2023', title: 'Cambio de vehÃ­culo', desc: 'ActualizaciÃ³n de placa y continuidad operativa estable.', tone: 'blue' },
   { year: '2024', title: 'Taller recurrente', desc: 'Aparece un taller frecuente en dos procesos consecutivos.', tone: 'amber' },
-  { year: '2025', title: 'Coincidencia narrativa IA', desc: 'La IA identifica repetición de estructura textual en el reclamo.', tone: 'red' },
+  { year: '2025', title: 'Coincidencia narrativa IA', desc: 'La IA identifica repeticiÃ³n de estructura textual en el reclamo.', tone: 'red' },
 ]
 
 const incidents = [
-  { title: 'COLISIÓN TRASERA', meta: 'Medellín · 2024', risk: 'Medio', amount: '$8,450' },
-  { title: 'CAMBIO DE VEHÍCULO', meta: 'Envigado · 2023', risk: 'Bajo', amount: '$0' },
-  { title: 'TALLER RECURRENTE', meta: 'Bello · 2024', risk: 'Medio', amount: '$15,230' },
+  { title: 'COLISIÃ“N TRASERA', meta: 'MedellÃ­n Â· 2024', risk: 'Medio', amount: '$8,450' },
+  { title: 'CAMBIO DE VEHÃCULO', meta: 'Envigado Â· 2023', risk: 'Bajo', amount: '$0' },
+  { title: 'TALLER RECURRENTE', meta: 'Bello Â· 2024', risk: 'Medio', amount: '$15,230' },
 ]
 
 const activityFeed = [
   { time: '09:42', text: 'Consistencia narrativa validada', tone: 'green' },
-  { time: '09:44', text: 'Riesgo reducido automáticamente', tone: 'blue' },
-  { time: '09:45', text: 'Historial geográfico coincide', tone: 'indigo' },
+  { time: '09:44', text: 'Riesgo reducido automÃ¡ticamente', tone: 'blue' },
+  { time: '09:45', text: 'Historial geogrÃ¡fico coincide', tone: 'indigo' },
 ]
 
 const relationGroups = [
-  { title: 'Vehículos asociados', items: ['KIA Sportage 2021', 'Mazda CX-5 2020'] },
-  { title: 'Talleres frecuentes', items: ['Taller Express', 'AutoMecánica L&R'] },
-  { title: 'Ubicaciones recurrentes', items: ['Medellín', 'Envigado', 'Bello'] },
+  { title: 'VehÃ­culos asociados', items: ['KIA Sportage 2021', 'Mazda CX-5 2020'] },
+  { title: 'Talleres frecuentes', items: ['Taller Express', 'AutoMecÃ¡nica L&R'] },
+  { title: 'Ubicaciones recurrentes', items: ['MedellÃ­n', 'Envigado', 'Bello'] },
   { title: 'Casos vinculados', items: ['#FR-87291', '#FR-76123', '#FR-65109'] },
 ]
 
 const radarData = [
   { axis: 'Consistencia', value: 94 },
-  { axis: 'Anomalías', value: 22 },
+  { axis: 'AnomalÃ­as', value: 22 },
   { axis: 'Frecuencia', value: 68 },
-  { axis: 'Geografía', value: 87 },
+  { axis: 'GeografÃ­a', value: 87 },
   { axis: 'Narrativa', value: 91 },
   { axis: 'Relaciones', value: 79 },
 ]
@@ -165,7 +165,7 @@ function ScoreBar({ target }: { target: number }) {
       }}>
         {displayScore > 700 ? 'BAJO RIESGO' : displayScore > 500 ? 'RIESGO MEDIO' : 'ALTO RIESGO'}
       </div>
-      <p>{displayScore > 700 ? 'Comportamiento estable y baja fricción operativa.' : displayScore > 500 ? 'Riesgo moderado, requiere monitoreo preventivo.' : 'Desviaciones operativas críticas e historial adverso.'}</p>
+      <p>{displayScore > 700 ? 'Comportamiento estable y baja fricciÃ³n operativa.' : displayScore > 500 ? 'Riesgo moderado, requiere monitoreo preventivo.' : 'Desviaciones operativas crÃ­ticas e historial adverso.'}</p>
     </div>
   )
 }
@@ -214,10 +214,10 @@ export default function AseguradosPage() {
   const selectedProfile = activeInsured ? {
     name: activeInsured.nombres_asegurado,
     role: `Perfil asegurado monitoreado (${activeInsured.perfil_riesgo_historico})`,
-    since: `Cliente antigüedad: ${activeInsured.antiguedad_asegurado} años`,
+    since: `Cliente antigÃ¼edad: ${activeInsured.antiguedad_asegurado} aÃ±os`,
     id: activeInsured.id_asegurado,
   } : {
-    name: 'Carlos Méndez',
+    name: 'Carlos MÃ©ndez',
     role: 'Perfil asegurado monitoreado',
     since: 'Cliente desde 2021',
     id: '#AS-42091',
@@ -227,7 +227,7 @@ export default function AseguradosPage() {
     if (!activeInsured) return [
       { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue' as const, icon: Activity, bars: [24, 40, 32, 48, 38] },
       { label: 'Consistencia narrativa', value: '94%', tone: 'green' as const, icon: CheckCircle2, bars: [44, 52, 54, 60, 64] },
-      { label: 'Patrón geográfico', value: '88%', tone: 'indigo' as const, icon: MapPin, bars: [28, 36, 45, 50, 52] },
+      { label: 'PatrÃ³n geogrÃ¡fico', value: '88%', tone: 'indigo' as const, icon: MapPin, bars: [28, 36, 45, 50, 52] },
       { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet' as const, icon: Clock3, bars: [18, 30, 26, 34, 40] },
       { label: 'Historial operativo', value: '91%', tone: 'amber' as const, icon: Shield, bars: [42, 44, 48, 55, 58] },
     ]
@@ -240,7 +240,7 @@ export default function AseguradosPage() {
       { label: 'Reclamos 12m', value: `${activeInsured.reclamos_ult_12m}`, tone: (risk === 'alto' ? 'red' : 'blue') as 'red' | 'blue', icon: Activity, bars: [10, 20, 30, 45, freqVal] },
       { label: 'Consistencia narrativa', value: risk === 'alto' ? '68%' : '94%', tone: (risk === 'alto' ? 'amber' : 'green') as 'amber' | 'green', icon: CheckCircle2, bars: [80, 85, 90, 92, risk === 'alto' ? 68 : 94] },
       { label: 'Siniestros Activos', value: `${activeInsured.total_siniestros_activos}`, tone: (activeInsured.total_siniestros_activos > 1 ? 'red' : 'indigo') as 'red' | 'indigo', icon: MapPin, bars: [5, 10, 15, 20, activeInsured.total_siniestros_activos * 30] },
-      { label: 'Reclamos Históricos', value: `${activeInsured.reclamos_historico_total}`, tone: 'violet' as const, icon: Clock3, bars: [20, 30, 40, 50, histVal] },
+      { label: 'Reclamos HistÃ³ricos', value: `${activeInsured.reclamos_historico_total}`, tone: 'violet' as const, icon: Clock3, bars: [20, 30, 40, 50, histVal] },
       { label: 'Perfil de riesgo', value: activeInsured.perfil_riesgo_historico, tone: (risk === 'alto' ? 'red' : risk === 'medio' ? 'amber' : 'green') as 'red' | 'amber' | 'green', icon: Shield, bars: [30, 40, 50, 60, risk === 'alto' ? 90 : risk === 'medio' ? 60 : 25] },
     ]
   }, [activeInsured])
@@ -1338,11 +1338,11 @@ export default function AseguradosPage() {
               <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
-                placeholder="Buscar perfil, riesgo, vehículo, taller..."
+                placeholder="Buscar perfil, riesgo, vehÃ­culo, taller..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
-              <span className="search-shortcut">⌘ K</span>
+              <span className="search-shortcut">âŒ˜ K</span>
             </div>
 
             <div className="topbar-right">
@@ -1372,7 +1372,7 @@ export default function AseguradosPage() {
               <div className="page-head">
                 <div>
                   <h1>Perfil inteligente del asegurado</h1>
-                  <p>Analítica conductual centrada en confianza, consistencia y señales de riesgo</p>
+                  <p>AnalÃ­tica conductual centrada en confianza, consistencia y seÃ±ales de riesgo</p>
                 </div>
 
                 <div className="head-actions">
@@ -1382,7 +1382,7 @@ export default function AseguradosPage() {
                   </span>
                   <button className="secondary-button" type="button">
                     <CaretDown size={16} />
-                    Más acciones
+                    MÃ¡s acciones
                   </button>
                 </div>
               </div>
@@ -1413,7 +1413,7 @@ export default function AseguradosPage() {
                         gap: 6
                       }}
                     >
-                      👤 {ins.nombres_asegurado} ({ins.reclamos_ult_12m} reclamos)
+                      ðŸ‘¤ {ins.nombres_asegurado} ({ins.reclamos_ult_12m} reclamos)
                     </button>
                   ))}
                 </div>
@@ -1431,7 +1431,7 @@ export default function AseguradosPage() {
                       color: activeInsured?.nivel_riesgo === 'alto' ? '#dc2626' : activeInsured?.nivel_riesgo === 'medio' ? '#d97706' : '#047857'
                     }}>
                       <Sparkle size={14} />
-                      {activeInsured?.nivel_riesgo === 'alto' ? 'Riesgo Crítico IA' : activeInsured?.nivel_riesgo === 'medio' ? 'Riesgo Moderado' : 'Perfil de confianza'}
+                      {activeInsured?.nivel_riesgo === 'alto' ? 'Riesgo CrÃ­tico IA' : activeInsured?.nivel_riesgo === 'medio' ? 'Riesgo Moderado' : 'Perfil de confianza'}
                     </span>
                     <h2>{selectedProfile.name}</h2>
                     <p>{selectedProfile.role}</p>
@@ -1477,7 +1477,7 @@ export default function AseguradosPage() {
                   <div className="section-head">
                     <div>
                       <h2>Timeline humano</h2>
-                      <p>Línea de vida aseguradora interpretada por IA conductual</p>
+                      <p>LÃ­nea de vida aseguradora interpretada por IA conductual</p>
                     </div>
                     <button className="year-switch" type="button">
                       {activeYear}
@@ -1507,7 +1507,7 @@ export default function AseguradosPage() {
                     <div className="section-head">
                       <div>
                         <h3>Perfil conductual</h3>
-                        <p>Radar de señales de confianza y riesgo</p>
+                        <p>Radar de seÃ±ales de confianza y riesgo</p>
                       </div>
                       <Radar size={16} color="#2563eb" />
                     </div>
@@ -1595,7 +1595,7 @@ export default function AseguradosPage() {
                   <div className="section-head">
                     <div>
                       <h2>Historial operativo</h2>
-                      <p>Eventos históricos en formato financiero digital</p>
+                      <p>Eventos histÃ³ricos en formato financiero digital</p>
                     </div>
                   </div>
 
@@ -1619,24 +1619,24 @@ export default function AseguradosPage() {
                   <div className="section-head">
                     <div>
                       <h2>Lectura de confianza</h2>
-                      <p>La IA valida el comportamiento y ajusta el score dinámicamente</p>
+                      <p>La IA valida el comportamiento y ajusta el score dinÃ¡micamente</p>
                     </div>
                   </div>
 
                   <div className="behavior-grid">
                     <div className="timeline-body">
-                      <h4>842 puntos · bajo riesgo</h4>
-                      <p>836 → 842 en esta sesión por consistencia narrativa y continuidad geográfica.</p>
+                      <h4>842 puntos Â· bajo riesgo</h4>
+                      <p>836 â†’ 842 en esta sesiÃ³n por consistencia narrativa y continuidad geogrÃ¡fica.</p>
                     </div>
 
                     <div className="timeline-body">
-                      <h4>Señales principales</h4>
+                      <h4>SeÃ±ales principales</h4>
                       <p>Frecuencia baja de reclamos, relaciones estables y talleres recurrentes controlados.</p>
                     </div>
 
                     <div className="timeline-body">
                       <h4>Confianza operativa</h4>
-                      <p>La identidad mantiene un patrón consistente a través del historial de siniestros.</p>
+                      <p>La identidad mantiene un patrÃ³n consistente a travÃ©s del historial de siniestros.</p>
                     </div>
                   </div>
                 </article>

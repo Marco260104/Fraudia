@@ -31,47 +31,47 @@ import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, Pola
 type SidebarItem = { label: string; icon: typeof House; href: string; badge?: string; group: 'main' | 'entities' | 'tools' }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
+  { label: 'Casos crÃ­ticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/demo', group: 'tools' },
-  { label: 'Reportes', icon: FileText, href: '/demo', group: 'tools' },
-  { label: 'Configuración', icon: Fingerprint, href: '/demo', group: 'tools' },
+  { label: 'Calculadora de riesgo', icon: Target, href: '/dashboard', group: 'tools' },
+  { label: 'Reportes', icon: FileText, href: '/dashboard', group: 'tools' },
+  { label: 'ConfiguraciÃ³n', icon: Fingerprint, href: '/dashboard', group: 'tools' },
 ]
 
 const kpis = [
-  { title: 'Talleres analizados', value: '428', delta: '↑ 14% vs ayer', tone: 'blue', icon: Wrench },
-  { title: 'Talleres de riesgo', value: '63', delta: '↑ 9% vs semana', tone: 'red', icon: Gauge },
-  { title: 'Relación con casos', value: '92', delta: '↑ 21% vs ayer', tone: 'indigo', icon: Users },
-  { title: 'Alertas técnicas', value: '31', delta: '↑ 4% vs ayer', tone: 'amber', icon: TrendUp },
+  { title: 'Talleres analizados', value: '428', delta: 'â†‘ 14% vs ayer', tone: 'blue', icon: Wrench },
+  { title: 'Talleres de riesgo', value: '63', delta: 'â†‘ 9% vs semana', tone: 'red', icon: Gauge },
+  { title: 'RelaciÃ³n con casos', value: '92', delta: 'â†‘ 21% vs ayer', tone: 'indigo', icon: Users },
+  { title: 'Alertas tÃ©cnicas', value: '31', delta: 'â†‘ 4% vs ayer', tone: 'amber', icon: TrendUp },
 ]
 
 const workshopData = [
-  { name: 'Taller Express', score: 96, risk: 'Crítico', city: 'Medellín', incidents: 58, vehicles: '24' },
-  { name: 'AutoMecánica L&R', score: 89, risk: 'Alto', city: 'Envigado', incidents: 41, vehicles: '18' },
+  { name: 'Taller Express', score: 96, risk: 'CrÃ­tico', city: 'MedellÃ­n', incidents: 58, vehicles: '24' },
+  { name: 'AutoMecÃ¡nica L&R', score: 89, risk: 'Alto', city: 'Envigado', incidents: 41, vehicles: '18' },
   { name: 'Car Center Pro', score: 84, risk: 'Alto', city: 'Bello', incidents: 33, vehicles: '16' },
-  { name: 'Taller La 80', score: 72, risk: 'Medio', city: 'Itagüí', incidents: 27, vehicles: '12' },
+  { name: 'Taller La 80', score: 72, risk: 'Medio', city: 'ItagÃ¼Ã­', incidents: 27, vehicles: '12' },
 ]
 
 const radarData = [
   { axis: 'Reclamos', value: 92 },
   { axis: 'Tiempos', value: 74 },
   { axis: 'Consistencia', value: 88 },
-  { axis: 'Geografía', value: 68 },
-  { axis: 'Repetición', value: 81 },
-  { axis: 'Vínculos', value: 86 },
+  { axis: 'GeografÃ­a', value: 68 },
+  { axis: 'RepeticiÃ³n', value: 81 },
+  { axis: 'VÃ­nculos', value: 86 },
 ]
 
 const activity = [
   { time: '09:42', text: 'Taller vinculado a 4 siniestros' },
   { time: '09:44', text: 'Coincidencia de proveedor recurrente' },
-  { time: '09:47', text: 'Trazabilidad de reparación validada' },
+  { time: '09:47', text: 'Trazabilidad de reparaciÃ³n validada' },
 ]
 
 export default function TalleresPage() {
@@ -80,9 +80,9 @@ export default function TalleresPage() {
 
   const operationalNotes = useMemo(
     () => [
-      'Historial de inspección consistente',
+      'Historial de inspecciÃ³n consistente',
       'Picos de actividad en horarios similares',
-      'Coincidencia de vehículos de alta exposición',
+      'Coincidencia de vehÃ­culos de alta exposiciÃ³n',
     ],
     [],
   )
@@ -154,7 +154,7 @@ export default function TalleresPage() {
         <div className="content">
           <header className="topbar">
             <div style={{ width: 220 }} />
-            <div className="search"><MagnifyingGlass className="i" size={16} /><input placeholder="Buscar taller, ciudad, proveedor..." /><span className="k">⌘ K</span></div>
+            <div className="search"><MagnifyingGlass className="i" size={16} /><input placeholder="Buscar taller, ciudad, proveedor..." /><span className="k">âŒ˜ K</span></div>
             <div className="top-right">
               <button className="chip" type="button"><Bell size={18} /><span className="badge-dot">3</span></button>
               <button className="chip" type="button"><HeartPulse size={18} /></button>
@@ -164,30 +164,30 @@ export default function TalleresPage() {
           </header>
           <div className="scroll">
             <div className="head">
-              <div><h1>Inteligencia de talleres</h1><p>Analítica operativa, trazabilidad y señales de confianza para red de reparación</p></div>
+              <div><h1>Inteligencia de talleres</h1><p>AnalÃ­tica operativa, trazabilidad y seÃ±ales de confianza para red de reparaciÃ³n</p></div>
               <div className="head-actions"><span className="rt"><span className="pulse" />Monitoreo activo</span><button className="btn" type="button"><CaretDown size={16} />Filtros</button><button className="btn primary" type="button">Exportar reporte</button></div>
             </div>
             <section className="hero">
               <div className="hero-main card">
                 <div className="avatar-shell"><div className="orb a" /><div className="orb b" /><div className="glass"><div className="init">TX</div></div></div>
-                <div className="hero-copy"><span className="rt"><CheckCircle2 size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias técnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><CalendarDays size={14} />Operativo desde 2019</span><span><Car size={14} />24 vehículos vinculados</span><span><UserRound size={14} />31 asegurados recurrentes</span></div></div>
+                <div className="hero-copy"><span className="rt"><CheckCircle2 size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias tÃ©cnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><CalendarDays size={14} />Operativo desde 2019</span><span><Car size={14} />24 vehÃ­culos vinculados</span><span><UserRound size={14} />31 asegurados recurrentes</span></div></div>
               </div>
-              <div className="trust"><div className="label">Operational trust</div><div className="score"><div className="n">91</div><div className="bar"><span style={{ height: '91%' }} /></div></div><div className="tag">RIESGO CONTENIDO</div><p>Patrón estable con picos de revisión en ventanas cortas.</p></div>
+              <div className="trust"><div className="label">Operational trust</div><div className="score"><div className="n">91</div><div className="bar"><span style={{ height: '91%' }} /></div></div><div className="tag">RIESGO CONTENIDO</div><p>PatrÃ³n estable con picos de revisiÃ³n en ventanas cortas.</p></div>
             </section>
             <section className="kpi-grid">{kpis.map((kpi) => { const Icon = kpi.icon; return <article className="kpi" key={kpi.title}><div className="top"><span className="ico"><Icon size={16} /></span><div><p className="muted">{kpi.title}</p><strong className="v">{kpi.value}</strong></div></div><div className="muted">{kpi.delta}</div><div className="bars">{[16, 24, 32, 40, 28].map((bar, i) => <span key={i} style={{ height: `${bar + i * 8}%` }} />)}</div></article> })}</section>
             <section className="main">
               <article className="panel">
-                <div className="head2"><div><h3>Workshop portfolio</h3><p>Historial operativo y relación con siniestros</p></div><div className="rt"><Gauge size={14} />Score dinámico</div></div>
-                <div className="workshop-list">{workshopData.map((w) => <div key={w.name} className={`workshop ${selected.name === w.name ? 'active' : ''}`} onClick={() => setSelected(w)}><div><strong>{w.name}</strong><div className="muted">{w.city} · {w.vehicles} vehículos</div></div><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: w.score >= 90 ? '#2563eb' : '#10b981' }}>{w.score}</div><div><span className={`risk ${w.risk === 'Crítico' ? 'red' : w.risk === 'Alto' ? 'orange' : 'green'}`}>{w.risk}</span></div></div>)}</div>
+                <div className="head2"><div><h3>Workshop portfolio</h3><p>Historial operativo y relaciÃ³n con siniestros</p></div><div className="rt"><Gauge size={14} />Score dinÃ¡mico</div></div>
+                <div className="workshop-list">{workshopData.map((w) => <div key={w.name} className={`workshop ${selected.name === w.name ? 'active' : ''}`} onClick={() => setSelected(w)}><div><strong>{w.name}</strong><div className="muted">{w.city} Â· {w.vehicles} vehÃ­culos</div></div><div className="mono" style={{ fontSize: 18, fontWeight: 800, color: w.score >= 90 ? '#2563eb' : '#10b981' }}>{w.score}</div><div><span className={`risk ${w.risk === 'CrÃ­tico' ? 'red' : w.risk === 'Alto' ? 'orange' : 'green'}`}>{w.risk}</span></div></div>)}</div>
               </article>
               <div className="right">
-                <article className="panel"><div className="head2"><div><h3>Perfil conductual</h3><p>Radar técnico de confianza</p></div></div><div className="radar"><ResponsiveContainer width="100%" height="100%"><RadarChart data={radarData}><PolarGrid stroke="rgba(100,116,139,.18)" /><PolarAngleAxis dataKey="axis" tick={{ fill: '#64748b', fontSize: 12 }} /><PolarRadiusAxis domain={[0,100]} tick={false} axisLine={false} /><Tooltip content={() => null} /><Radar dataKey="value" stroke="#2563eb" fill="rgba(37,99,235,.2)" fillOpacity={1} strokeWidth={2} /></RadarChart></ResponsiveContainer></div></article>
+                <article className="panel"><div className="head2"><div><h3>Perfil conductual</h3><p>Radar tÃ©cnico de confianza</p></div></div><div className="radar"><ResponsiveContainer width="100%" height="100%"><RadarChart data={radarData}><PolarGrid stroke="rgba(100,116,139,.18)" /><PolarAngleAxis dataKey="axis" tick={{ fill: '#64748b', fontSize: 12 }} /><PolarRadiusAxis domain={[0,100]} tick={false} axisLine={false} /><Tooltip content={() => null} /><Radar dataKey="value" stroke="#2563eb" fill="rgba(37,99,235,.2)" fillOpacity={1} strokeWidth={2} /></RadarChart></ResponsiveContainer></div></article>
                 <article className="mini"><div className="head2"><div><h3>Actividad IA</h3><p>Validaciones recientes</p></div></div><div className="feed">{activity.map((a) => <div key={a.time} className="feed-item"><div className="feed-time">{a.time}</div><div><span className={`badge-dot ${a.time === '09:42' ? 'green' : a.time === '09:44' ? 'blue' : 'indigo'}`} style={{ position: 'static', display: 'inline-block', marginRight: 8, width: 8, height: 8, border: 'none' }} />{a.text}</div></div>)}</div></article>
               </div>
             </section>
             <section className="foot">
-              <article className="history"><div className="head2"><div><h3>Historial operativo</h3><p>Línea de eventos históricos</p></div></div><div className="history-list">{operationalNotes.map((note, i) => <div key={note} className="history-row"><strong>{['Inspección técnica', 'Reparación recurrente', 'Verificación documental'][i]}</strong><div className="history-meta">{note}</div><div className="history-bottom"><span className={`risk ${i === 2 ? 'green' : 'orange'}`}>{i === 2 ? 'Bajo' : 'Medio'}</span><span className="mono">{['2022','2023','2024'][i]}</span></div></div>)}</div></article>
-              <article className="history"><div className="head2"><div><h3>Lectura de confianza</h3><p>Señales que suben o bajan el score</p></div></div><div className="history-list"><div className="history-row"><strong>{selected.name}</strong><div className="history-meta">Último score operativo: 91 / 100</div><div className="history-bottom"><span className="risk green">Confiable</span><span className="mono">836 → 842</span></div></div><div className="history-row"><strong>Observación IA</strong><div className="history-meta">Trazabilidad coherente y talleres consistentes</div></div></div></article>
+              <article className="history"><div className="head2"><div><h3>Historial operativo</h3><p>LÃ­nea de eventos histÃ³ricos</p></div></div><div className="history-list">{operationalNotes.map((note, i) => <div key={note} className="history-row"><strong>{['InspecciÃ³n tÃ©cnica', 'ReparaciÃ³n recurrente', 'VerificaciÃ³n documental'][i]}</strong><div className="history-meta">{note}</div><div className="history-bottom"><span className={`risk ${i === 2 ? 'green' : 'orange'}`}>{i === 2 ? 'Bajo' : 'Medio'}</span><span className="mono">{['2022','2023','2024'][i]}</span></div></div>)}</div></article>
+              <article className="history"><div className="head2"><div><h3>Lectura de confianza</h3><p>SeÃ±ales que suben o bajan el score</p></div></div><div className="history-list"><div className="history-row"><strong>{selected.name}</strong><div className="history-meta">Ãšltimo score operativo: 91 / 100</div><div className="history-bottom"><span className="risk green">Confiable</span><span className="mono">836 â†’ 842</span></div></div><div className="history-row"><strong>ObservaciÃ³n IA</strong><div className="history-meta">Trazabilidad coherente y talleres consistentes</div></div></div></article>
             </section>
           </div>
         </div>

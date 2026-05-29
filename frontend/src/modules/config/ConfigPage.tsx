@@ -7,28 +7,10 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts'
 import { Link } from 'react-router-dom'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 import './ConfigPage.css'
 
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: false },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', active: false },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: false },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', active: false },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', active: false },
-]
 
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos', active: false },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores', active: false },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo', active: false },
-  { label: 'Talleres', icon: Stethoscope, href: '/demo', active: false },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: true },
-]
 
 export function ConfigPage() {
   const [sensitivity, setSensitivity] = useState(82)
@@ -52,7 +34,7 @@ export function ConfigPage() {
   const [threshold, setThreshold] = useState(0.5)
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/model/status')
+    fetch(API_BASE_URL + '/api/model/status')
       .then(res => res.json())
       .then(data => {
         setModelStatus(data)
@@ -63,7 +45,7 @@ export function ConfigPage() {
 
   const handleThresholdChange = (val: number) => {
     setThreshold(val)
-    fetch('http://localhost:8000/api/model/threshold', {
+    fetch(API_BASE_URL + '/api/model/threshold', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ threshold: val / 100 })
@@ -345,6 +327,20 @@ export function ConfigPage() {
                           onChange={(e) => handleThresholdChange(Number(e.target.value))}
                           style={{ accentColor: 'var(--cfg-orange)' }}
                         />
+                      </div>
+                      <div className="slider-group" style={{ marginTop: 8, opacity: 0.5 }}>
+                        <div className="slider-header">
+                          <span>Sensibilidad (Próximamente)</span>
+                          <span className="slider-val">{sensitivity}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={sensitivity} disabled />
+                      </div>
+                      <div className="slider-group" style={{ marginTop: 8, opacity: 0.5 }}>
+                        <div className="slider-header">
+                          <span>Peso de Reglas (Próximamente)</span>
+                          <span className="slider-val">{ruleWeight}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value={ruleWeight} disabled />
                       </div>
                     </>
                   ) : (

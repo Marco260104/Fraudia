@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { API_BASE_URL } from '../../config/api'
+import { useNavigate } from 'react-router-dom'
 
 const TABS = [
   { label: 'Todas', tone: null },
@@ -121,6 +122,7 @@ export function AlertsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [activeTab, setActiveTab] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     Promise.all([
@@ -313,14 +315,11 @@ export function AlertsPage() {
                       <span>{row.time}</span>
                       <span className={`alerts-state state-${toClassName(row.state)}`}>{row.state}</span>
                       <div className="alerts-actions-row">
-                        <button type="button">
+                        <button type="button" title="Ver caso" onClick={() => navigate('/casos-criticos')}>
                           <Eye size={16} weight="bold" />
                         </button>
-                        <button type="button">
-                          <ChartLineUp size={16} weight="bold" />
-                        </button>
-                        <button type="button">
-                          <ArrowRight size={16} weight="bold" />
+                        <button type="button" title="Descartar" onClick={() => setAlerts(prev => prev.filter(a => a !== row))}>
+                          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>✕</span>
                         </button>
                       </div>
                     </div>

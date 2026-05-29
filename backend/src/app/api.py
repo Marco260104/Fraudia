@@ -4,7 +4,7 @@ import json
 import csv
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -116,6 +116,7 @@ class ThresholdInput(BaseModel):
 
 class ChatInput(BaseModel):
     message: str
+    history: Optional[List[Dict[str, Any]]] = None
 
 
 # ── ENDPOINT: Health ──────────────────────────────────────────────────────────
@@ -1072,10 +1073,31 @@ Todos los casos se identifican con el formato #FR-XXXX. Responde de forma clara,
 Si la pregunta no está relacionada con siniestros de seguros o fraude, responde amablemente que tu especialidad es el análisis forense de siniestros en fraudIA.
 """
     try:
+        contents = []
+        if payload.history:
+            for i, h in enumerate(payload.history):
+                role = "model" if h.get("role") == "assistant" else "user"
+                text_content = h.get("content", "")
+                if i == 0 and role == "user":
+                    text_content = f"{system_prompt}\n\n{text_content}"
+                contents.append({
+                    "role": role,
+                    "parts": [{"text": text_content}]
+                })
+        
+        current_text = f"Pregunta del Analista: {user_msg}"
+        if not payload.history:
+            current_text = f"{system_prompt}\n\n{current_text}"
+            
+        contents.append({
+            "role": "user",
+            "parts": [{"text": current_text}]
+        })
+
         import requests
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
-        body = {"contents": [{"parts": [{"text": f"{system_prompt}\n\nPregunta del Analista: {user_msg}"}]}]}
+        body = {"contents": contents}
         response = requests.post(url, json=body, headers=headers, timeout=15)
         response_json = response.json()
         if "candidates" in response_json and len(response_json["candidates"]) > 0:

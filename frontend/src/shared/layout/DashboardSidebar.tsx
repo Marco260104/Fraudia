@@ -8,7 +8,7 @@ import {
 import { API_BASE_URL } from '../../config/api'
 
 const entityMenu = [
-  { label: 'Vehículos', icon: CarSimple, href: '/vehiculos' },
+  { label: 'VehÃ­culos', icon: CarSimple, href: '/vehiculos' },
   { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
   { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
   { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
@@ -18,7 +18,7 @@ const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora' },
   { label: 'Transparencia IA', icon: Brain, href: '/modelo' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion' },
+  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion' },
 ]
 
 interface DashboardSidebarProps {
@@ -26,7 +26,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ activeRoute }: DashboardSidebarProps) {
-  const [criticalCasesCount, setCriticalCasesCount] = useState<string>('–')
+  const [criticalCasesCount, setCriticalCasesCount] = useState<string>('â€“')
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/kpis`)
@@ -34,12 +34,12 @@ export function DashboardSidebar({ activeRoute }: DashboardSidebarProps) {
       .then(data => {
         if (data.casos_criticos) setCriticalCasesCount(data.casos_criticos.toString())
       })
-      .catch(() => setCriticalCasesCount('–'))
+      .catch(() => setCriticalCasesCount('â€“'))
   }, [])
 
   const mainMenu = [
-    { label: 'Centro de inteligencia', icon: House, href: '/demo', badge: undefined as string | undefined },
-    { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: criticalCasesCount },
+    { label: 'Centro de inteligencia', icon: House, href: '/dashboard', badge: undefined as string | undefined },
+    { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: criticalCasesCount },
     { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', badge: undefined },
     { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', badge: undefined },
     { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', badge: undefined },
@@ -53,7 +53,7 @@ export function DashboardSidebar({ activeRoute }: DashboardSidebarProps) {
       </button>
 
       <div className="dashboard-nav-group">
-        <p className="dashboard-nav-label">Menú principal</p>
+        <p className="dashboard-nav-label">MenÃº principal</p>
         <nav className="dashboard-nav">
           {mainMenu.map((item) => {
             const Icon = item.icon

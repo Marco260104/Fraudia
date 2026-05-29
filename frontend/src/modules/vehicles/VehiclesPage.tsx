@@ -48,18 +48,18 @@ type SparkConfig = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
+  { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
+  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
 ]
 
 const kpiDataVehicles = [
@@ -70,19 +70,19 @@ const kpiDataVehicles = [
 ]
 
 const sparkConfigsVehicles: SparkConfig[] = [
-  { title: 'Vehículos analizados', value: '3,841', subtitle: '↑ 17% vs ayer', stroke: '#2563eb', icon: Car, tone: 'blue' },
-  { title: 'Alto riesgo', value: '247', subtitle: '↑ 31% vs ayer', stroke: '#dc2626', icon: Warning, tone: 'red' },
-  { title: 'Placas duplicadas', value: '38', subtitle: '↑ 9% vs ayer', stroke: '#ea580c', icon: Clock, tone: 'orange' },
-  { title: 'VINs irregulares', value: '14', subtitle: '→ 0% vs ayer', stroke: '#7c3aed', icon: Grid, tone: 'violet' },
+  { title: 'VehÃ­culos analizados', value: '3,841', subtitle: 'â†‘ 17% vs ayer', stroke: '#2563eb', icon: Car, tone: 'blue' },
+  { title: 'Alto riesgo', value: '247', subtitle: 'â†‘ 31% vs ayer', stroke: '#dc2626', icon: Warning, tone: 'red' },
+  { title: 'Placas duplicadas', value: '38', subtitle: 'â†‘ 9% vs ayer', stroke: '#ea580c', icon: Clock, tone: 'orange' },
+  { title: 'VINs irregulares', value: '14', subtitle: 'â†’ 0% vs ayer', stroke: '#7c3aed', icon: Grid, tone: 'violet' },
 ]
 
 const vehiclesData = [
-  { placa: 'MFD 341', propietario: 'Carlos Méndez', vehiculo: 'KIA Sportage 2021', siniestros: 5, score: 94, city: 'Medellín', vin: '3VWSC29M72M1', amount: '$28.4M', date: '28/05/2025' },
-  { placa: 'BOG 872', propietario: 'Ana Rodríguez', vehiculo: 'Chevrolet Spark 2020', siniestros: 4, score: 88, city: 'Bogotá', vin: '9BWSC29M72M2', amount: '$15.2M', date: '28/05/2025' },
-  { placa: 'CAI 519', propietario: 'Pedro Gómez', vehiculo: 'Toyota Fortuner 2022', siniestros: 3, score: 76, city: 'Cali', vin: 'JTDKA29M72M3', amount: '$9.8M', date: '27/05/2025' },
-  { placa: 'MFD 763', propietario: 'Laura Torres', vehiculo: 'Renault Logan 2019', siniestros: 3, score: 72, city: 'Medellín', vin: 'VF1SC29M72M4', amount: '$6.4M', date: '27/05/2025' },
-  { placa: 'RAO 201', propietario: 'Miguel Ramírez', vehiculo: 'Mazda CX-5 2021', siniestros: 2, score: 45, city: 'Bogotá', vin: 'JM3SC29M72M5', amount: '$3.2M', date: '26/05/2025' },
-  { placa: 'MED 092', propietario: 'Sofia Castro', vehiculo: 'Nissan March 2020', siniestros: 6, score: 94, city: 'Medellín', vin: '3VWSC29M72M', amount: '$31.2M', date: '28/05/2025' },
+  { placa: 'MFD 341', propietario: 'Carlos MÃ©ndez', vehiculo: 'KIA Sportage 2021', siniestros: 5, score: 94, city: 'MedellÃ­n', vin: '3VWSC29M72M1', amount: '$28.4M', date: '28/05/2025' },
+  { placa: 'BOG 872', propietario: 'Ana RodrÃ­guez', vehiculo: 'Chevrolet Spark 2020', siniestros: 4, score: 88, city: 'BogotÃ¡', vin: '9BWSC29M72M2', amount: '$15.2M', date: '28/05/2025' },
+  { placa: 'CAI 519', propietario: 'Pedro GÃ³mez', vehiculo: 'Toyota Fortuner 2022', siniestros: 3, score: 76, city: 'Cali', vin: 'JTDKA29M72M3', amount: '$9.8M', date: '27/05/2025' },
+  { placa: 'MFD 763', propietario: 'Laura Torres', vehiculo: 'Renault Logan 2019', siniestros: 3, score: 72, city: 'MedellÃ­n', vin: 'VF1SC29M72M4', amount: '$6.4M', date: '27/05/2025' },
+  { placa: 'RAO 201', propietario: 'Miguel RamÃ­rez', vehiculo: 'Mazda CX-5 2021', siniestros: 2, score: 45, city: 'BogotÃ¡', vin: 'JM3SC29M72M5', amount: '$3.2M', date: '26/05/2025' },
+  { placa: 'MED 092', propietario: 'Sofia Castro', vehiculo: 'Nissan March 2020', siniestros: 6, score: 94, city: 'MedellÃ­n', vin: '3VWSC29M72M', amount: '$31.2M', date: '28/05/2025' },
 ]
 
 const historyData = [
@@ -194,7 +194,7 @@ export default function VehiclesPage() {
         setLoading(false)
       })
       .catch(err => {
-        console.error('Error cargando vehículos:', err)
+        console.error('Error cargando vehÃ­culos:', err)
         setError('No se pudo conectar al servidor')
         setLoading(false)
         const fallback = vehiclesData.map(v => ({ ...v, score: v.score }))
@@ -551,11 +551,11 @@ export default function VehiclesPage() {
               <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
-                placeholder="Buscar vehículo, propietario, placa o VIN..."
+                placeholder="Buscar vehÃ­culo, propietario, placa o VIN..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
-              <span className="search-shortcut">⌘ K</span>
+              <span className="search-shortcut">âŒ˜ K</span>
             </div>
 
             <div className="top-right">
@@ -581,8 +581,8 @@ export default function VehiclesPage() {
             <div className="content-grid">
               <div className="page-head">
                 <div>
-                  <h1>Vehículos</h1>
-                  <p>Parque automotor vinculado a siniestros — análisis de riesgo por placa, modelo y historial</p>
+                  <h1>VehÃ­culos</h1>
+                  <p>Parque automotor vinculado a siniestros â€” anÃ¡lisis de riesgo por placa, modelo y historial</p>
                 </div>
                 <div className="head-actions">
                   <span className="real-time-chip">
@@ -611,7 +611,7 @@ export default function VehiclesPage() {
                   <article className="nar-card table-card">
                     <div className="section-head">
                       <div>
-                        <h2>Vehículos en vigilancia activa</h2>
+                        <h2>VehÃ­culos en vigilancia activa</h2>
                       </div>
                     </div>
 
@@ -620,7 +620,7 @@ export default function VehiclesPage() {
                         <tr>
                           <th>PLACA</th>
                           <th>PROPIETARIO</th>
-                          <th>VEHÍCULO</th>
+                          <th>VEHÃCULO</th>
                           <th>SINIESTROS</th>
                           <th>SCORE</th>
                         </tr>
@@ -657,7 +657,7 @@ export default function VehiclesPage() {
                       </tbody>
                     </table>
                     <div className="table-footer">
-                      Mostrando {filteredVehicles.length} de 247 vehículos de alto riesgo
+                      Mostrando {filteredVehicles.length} de 247 vehÃ­culos de alto riesgo
                     </div>
                   </article>
                 </div>
@@ -668,10 +668,10 @@ export default function VehiclesPage() {
 
         <aside className="right-column">
           <div className="right-section">
-            <h3>VEHÍCULO ACTIVO</h3>
+            <h3>VEHÃCULO ACTIVO</h3>
             <div className="vehicle-header">
               <span className="vehicle-id">#{selected.placa}</span>
-              <span className="severity-badge">{selected.score >= 80 ? 'CRÍTICO' : selected.score >= 60 ? 'ALTO' : 'MEDIO'}</span>
+              <span className="severity-badge">{selected.score >= 80 ? 'CRÃTICO' : selected.score >= 60 ? 'ALTO' : 'MEDIO'}</span>
             </div>
             
             <div className="vehicle-info-card">
@@ -680,7 +680,7 @@ export default function VehiclesPage() {
               </div>
               <div className="vehicle-details-text">
                 <strong>{selected.vehiculo}</strong>
-                <span>{selected.propietario} · {selected.city}</span>
+                <span>{selected.propietario} Â· {selected.city}</span>
               </div>
             </div>
             
@@ -705,7 +705,7 @@ export default function VehiclesPage() {
             
             <div className="details-list">
               <div className="details-row">
-                <span><Clock size={14} /> Último siniestro</span>
+                <span><Clock size={14} /> Ãšltimo siniestro</span>
                 <strong>{selected.date}</strong>
               </div>
               <div className="details-row">
@@ -727,7 +727,7 @@ export default function VehiclesPage() {
             </div>
             
             <div className="action-buttons">
-              <button className="primary-button btn-full" type="button">Ver análisis</button>
+              <button className="primary-button btn-full" type="button">Ver anÃ¡lisis</button>
               <button className="secondary-button btn-full" type="button">Expediente <ArrowUpRight size={14} /></button>
             </div>
           </div>
@@ -756,20 +756,20 @@ export default function VehiclesPage() {
           </div>
           
           <div className="right-section">
-            <h3>Alertas del vehículo</h3>
+            <h3>Alertas del vehÃ­culo</h3>
             <div className="alerts-list">
               <div className="alert-item">
                 <div className="alert-icon red"><Warning size={16} /></div>
                 <div className="alert-content">
                   <strong>Siniestro en zona de alto fraude</strong>
-                  <span>Sector La 80 · Medellín</span>
+                  <span>Sector La 80 Â· MedellÃ­n</span>
                 </div>
                 <div className="alert-time">09:42</div>
               </div>
               <div className="alert-item">
                 <div className="alert-icon orange"><XCircle size={16} /></div>
                 <div className="alert-content">
-                  <strong>Fotos de daños duplicadas</strong>
+                  <strong>Fotos de daÃ±os duplicadas</strong>
                   <span>Match con siniestro #S-65109</span>
                 </div>
                 <div className="alert-time">09:28</div>
@@ -778,7 +778,7 @@ export default function VehiclesPage() {
                 <div className="alert-icon purple"><ArrowRight size={16} /></div>
                 <div className="alert-content">
                   <strong>Vinculado a red de 4 talleres</strong>
-                  <span>Taller Express + 3 más</span>
+                  <span>Taller Express + 3 mÃ¡s</span>
                 </div>
                 <div className="alert-time">09:15</div>
               </div>

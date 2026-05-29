@@ -1,6 +1,7 @@
+import { ShieldCheck } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 import { useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
   Bell,
@@ -541,6 +542,14 @@ export default function VehiclesPage() {
               </button>
             </section>
           </div>
+        
+          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
+            <div className="sac-icon"><ShieldCheck size={24} /></div>
+            <div className="sac-info">
+              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
+              <p>Asistente inteligente</p>
+            </div>
+          </Link>
         </aside>
 
         <div className="nar-center">

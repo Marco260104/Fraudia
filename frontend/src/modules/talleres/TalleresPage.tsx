@@ -1,5 +1,6 @@
+import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
   Bell,
@@ -22,6 +23,7 @@ import {
   UserRound,
   Users,
   Wrench,
+  ShieldCheck
 } from 'lucide-react'
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts'
 
@@ -181,6 +183,14 @@ export default function TalleresPage() {
               <button className="btn" type="button" style={{ width: '100%', justifyContent: 'space-between' }}><span>Abrir chat</span><ArrowRight size={16} /></button>
             </section>
           </div>
+        
+          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
+            <div className="sac-icon"><ShieldCheck size={24} /></div>
+            <div className="sac-info">
+              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
+              <p>Asistente inteligente</p>
+            </div>
+          </Link>
         </aside>
         <div className="content">
           <header className="topbar">

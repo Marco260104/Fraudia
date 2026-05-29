@@ -16,6 +16,8 @@ import {
   UsersThree,
   WarningCircle,
 } from '@phosphor-icons/react'
+import { Link } from 'react-router-dom'
+
 
 const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo' },
@@ -250,18 +252,14 @@ export function AlertsPage() {
               })}
             </nav>
           </div>
-
-          <section className="dashboard-assistant">
-            <div className="dashboard-assistant-head">
-              <ShieldCheck size={20} weight="bold" />
-              <strong>IA Assistant</strong>
+        
+          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
+            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
+            <div className="sac-info">
+              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
+              <p>Asistente inteligente</p>
             </div>
-            <p>Pregúntame sobre patrones, alertas o investigaciones.</p>
-            <button type="button" className="dashboard-assistant-cta">
-              <span>Abrir chat</span>
-              <ArrowGlyph />
-            </button>
-          </section>
+          </Link>
         </aside>
 
         <section className="dashboard-main alerts-main">

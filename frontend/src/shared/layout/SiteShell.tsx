@@ -33,11 +33,11 @@ export function SiteShell({ children }: SiteShellProps) {
               />
               <span className="brand-copy">
                 <strong>Fraudia</strong>
-                <span>Detección de fraude en siniestros</span>
+                <span>DetecciÃ³n de fraude en siniestros</span>
               </span>
             </button>
 
-            <nav className="desktop-nav" aria-label="Navegación principal">
+            <nav className="desktop-nav" aria-label="NavegaciÃ³n principal">
               {navItems.map((item) => (
                 <Link key={item.label} to={item.href} className="nav-link">
                   {item.label}
@@ -47,10 +47,10 @@ export function SiteShell({ children }: SiteShellProps) {
             </nav>
 
             <div className="header-actions">
-              <NavLink to="/demo" className="btn btn-secondary header-login">
+              <NavLink to="/dashboard" className="btn btn-secondary header-login">
                 Iniciar sesion
               </NavLink>
-              <NavLink to="/demo" className="btn btn-primary">
+              <NavLink to="/dashboard" className="btn btn-primary">
                 Demo
                 <ArrowRight size={16} weight="bold" />
               </NavLink>

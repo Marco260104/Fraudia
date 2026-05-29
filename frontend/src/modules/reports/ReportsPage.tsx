@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   Bell, CirclesThree, House, MapTrifold, ShieldCheck,
   Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
@@ -5,95 +6,34 @@ import {
   DownloadSimple, Lightning, Lightbulb, ChartLineUp, SlidersHorizontal
 } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 import './ReportsPage.css'
 
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: false },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', active: false },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: false },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', active: false },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', active: false },
-]
-
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos', active: false },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores', active: false },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo', active: false },
-  { label: 'Talleres', icon: Stethoscope, href: '/demo', active: false },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
-  { label: 'Reportes Inteligentes', icon: ChartLineUp, href: '/reportes', active: true },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
-]
 
 export function ReportsPage() {
+  const [kpis, setKpis] = useState<any>({
+    casos_criticos: '18',
+    alertas_generadas: '124',
+    monto_reclamado: '$4.8M',
+    riesgo_promedio: '42%'
+  })
+
+  useEffect(() => {
+    fetch(API_BASE_URL + '/api/kpis')
+      .then(res => res.json())
+      .then(data => {
+        if (data) setKpis(data)
+      })
+      .catch(console.error)
+  }, [])
+
   return (
     <div className="reports-page">
       <div className="reports-layout">
         
         {/* SIDEBAR */}
-        <aside className="dashboard-sidebar" style={{ zIndex: 10 }}>
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-          
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/reportes" />
 
         {/* MAIN CONTENT */}
         <main className="reports-main">
@@ -128,13 +68,13 @@ export function ReportsPage() {
               <div className="hero-particle" style={{ left: '85%', animationDelay: '3s' }}></div>
               
               <div className="hero-main-metric">
-                <h2>$4.8M</h2>
+                <h2>{kpis.monto_reclamado}</h2>
                 <p>Bajo Investigación Activa</p>
               </div>
 
               <div className="hero-secondary-metrics">
                 <div className="hero-stat">
-                  <span className="val">18</span>
+                  <span className="val">{kpis.casos_criticos}</span>
                   <span className="lbl">Casos Críticos</span>
                 </div>
                 <div className="hero-stat">
@@ -146,7 +86,7 @@ export function ReportsPage() {
                   <span className="lbl">Precisión IA</span>
                 </div>
                 <div className="hero-stat">
-                  <span className="val">124</span>
+                  <span className="val">{kpis.alertas_generadas}</span>
                   <span className="lbl">Alertas Procesadas</span>
                 </div>
               </div>
@@ -157,7 +97,7 @@ export function ReportsPage() {
               <div className="kpi-card kpi-red">
                 <div className="kpi-title">Casos alto riesgo</div>
                 <div className="kpi-value-row">
-                  <span className="val">18</span>
+                  <span className="val">{kpis.casos_criticos}</span>
                   <span className="delta up"><ArrowUpRight weight="bold"/> +12%</span>
                 </div>
               </div>
@@ -171,7 +111,7 @@ export function ReportsPage() {
               <div className="kpi-card kpi-orange">
                 <div className="kpi-title">Narrativas clonadas</div>
                 <div className="kpi-value-row">
-                  <span className="val">87</span>
+                  <span className="val">{kpis.alertas_generadas}</span>
                   <span className="delta up"><ArrowUpRight weight="bold"/> +15%</span>
                 </div>
               </div>

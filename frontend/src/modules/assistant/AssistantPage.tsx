@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import {
   Bell, CirclesThree, House, MapTrifold, ShieldCheck,
   Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
@@ -7,31 +8,13 @@ import {
 } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 import './AssistantPage.css'
 
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: false },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', active: false },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: false },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', active: false },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', active: false },
-]
 
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos', active: false },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores', active: false },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo', active: false },
-  { label: 'Talleres', icon: Stethoscope, href: '/demo', active: false },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
-]
 
 export function AssistantPage() {
-  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai', text: string, timestamp: string }>>([])
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant', content: string, timestamp: string }>>([])
   const [inputVal, setInputVal] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -43,23 +26,25 @@ export function AssistantPage() {
     setIsLoading(true)
 
     const userMsg = {
-      sender: 'user' as const,
-      text: textToSend,
+      role: 'user' as const,
+      content: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
     setMessages(prev => [...prev, userMsg])
 
-    fetch('http://localhost:8000/api/chat', {
+    const historyPayload = messages.map(m => ({ role: m.role, content: m.content }));
+
+    fetch(API_BASE_URL + '/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: textToSend })
+      body: JSON.stringify({ message: textToSend, history: historyPayload })
     })
       .then(res => res.json())
       .then(data => {
         const aiMsg = {
-          sender: 'ai' as const,
-          text: data.response,
+          role: 'assistant' as const,
+          content: data.response,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
         setMessages(prev => [...prev, aiMsg])
@@ -80,8 +65,8 @@ He analizado tu mensaje ("${textToSend}"). De acuerdo con el dataset actual de l
 Dime cómo deseas proceder.`
           
           const aiMsg = {
-            sender: 'ai' as const,
-            text: fallbackResponse,
+            role: 'assistant' as const,
+            content: fallbackResponse,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           }
           setMessages(prev => [...prev, aiMsg])
@@ -121,12 +106,12 @@ Dime cómo deseas proceder.`
               <div className="ast-chat-container">
                 <div className="ast-chat-history">
                   {messages.map((msg, index) => (
-                    <div key={index} className={`ast-chat-bubble-wrapper ${msg.sender}`}>
+                    <div key={index} className={`ast-chat-bubble-wrapper ${msg.role === 'user' ? 'user' : 'ai'}`}>
                       <div className="ast-chat-avatar">
-                        {msg.sender === 'user' ? 'ME' : <ShieldCheck size={18} weight="fill" />}
+                        {msg.role === 'user' ? 'ME' : <ShieldCheck size={18} weight="fill" />}
                       </div>
                       <div className="ast-chat-bubble">
-                        <div className="ast-chat-bubble-text" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+                        <div className="ast-chat-bubble-text" style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
                         <span className="ast-chat-bubble-time">{msg.timestamp}</span>
                       </div>
                     </div>
@@ -280,46 +265,8 @@ Dime cómo deseas proceder.`
                   </div>
                 </section>
 
-                {/* BOTTOM SPLIT */}
                 <div className="ast-bottom-grid">
                   
-                  {/* RECENT CONVERSATIONS */}
-                  <div className="ast-panel">
-                    <div className="ast-panel-header">
-                      <h3>Conversaciones recientes</h3>
-                    </div>
-                    <div className="ast-conv-list">
-                      <div className="ast-conv-item" onClick={() => handleSendMessage('Dame un análisis de los casos críticos en Guayaquil')}>
-                        <div className="ast-conv-left">
-                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                          Análisis de casos críticos en Guayaquil
-                        </div>
-                        <div className="ast-conv-time">Hoy, 09:42 AM</div>
-                      </div>
-                      <div className="ast-conv-item" onClick={() => handleSendMessage('¿Cuáles son los proveedores con mayor riesgo en Pichincha?')}>
-                        <div className="ast-conv-left">
-                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                          Proveedores con mayor riesgo en Pichincha
-                        </div>
-                        <div className="ast-conv-time">Hoy, 08:15 AM</div>
-                      </div>
-                      <div className="ast-conv-item" onClick={() => handleSendMessage('¿Qué patrones de narrativa clonada se han detectado?')}>
-                        <div className="ast-conv-left">
-                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                          Patrones de narrativa clonada detectados
-                        </div>
-                        <div className="ast-conv-time">Ayer, 04:33 PM</div>
-                      </div>
-                      <div className="ast-conv-item" onClick={() => handleSendMessage('Dame el impacto económico estimado del fraude')}>
-                        <div className="ast-conv-left">
-                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                          Impacto económico del fraude Q1 2025
-                        </div>
-                        <div className="ast-conv-time">Ayer, 11:20 AM</div>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* AI CAPABILITIES */}
                   <div className="ast-panel">
                     <div className="ast-panel-header">

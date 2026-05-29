@@ -3,7 +3,7 @@ import { AppLoader } from './shared/layout/AppLoader'
 import { SiteShell } from './shared/layout/SiteShell'
 import { AlertsPage } from './modules/alerts/AlertsPage'
 import { CriticalCasesPage } from './modules/critical/CriticalCasesPage'
-import { DemoPage } from './modules/demo/DemoPage'
+import { DemoPage } from './modules/dashboard/dashboardPage'
 import { HomePage } from './modules/home/HomePage'
 import NarrativasSimilaresPage from './modules/narratives/NarrativesPage'
 import TalleresPage from './modules/talleres/TalleresPage'
@@ -25,7 +25,7 @@ function App() {
       <AppLoader key={location.pathname} />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/demo" element={<DemoPage />} />
+        <Route path="/dashboard" element={<DemoPage />} />
         <Route path="/casos-criticos" element={<CriticalCasesPage />} />
         <Route path="/alertas-ia" element={<AlertsPage />} />
         <Route path="/mapa-siniestros" element={<MapaSiniestrosPage />} />

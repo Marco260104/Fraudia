@@ -30,7 +30,7 @@ type SparkConfig = {
 type NarrativeRow = {
   id: string
   similarity: string
-  severity: 'CRÍTICO' | 'ALTO' | 'MEDIO'
+  severity: 'CRÃTICO' | 'ALTO' | 'MEDIO'
   excerpt: string
   insured: string
   date: string
@@ -41,18 +41,18 @@ type NarrativeRow = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
+  { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
+  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
 ]
 
 const kpiData = [
@@ -64,11 +64,11 @@ const kpiData = [
 ]
 
 const sparkConfigs: SparkConfig[] = [
-  { title: 'Narrativas analizadas hoy', value: '1,247', subtitle: '↑ 24% vs ayer', stroke: '#2563eb', icon: ChatTeardropText, tone: 'blue' },
-  { title: 'Grupos de narrativas', value: '86', subtitle: '↑ 18% vs ayer', stroke: '#ea580c', icon: Stack, tone: 'orange' },
-  { title: 'Coincidencias encontradas', value: '327', subtitle: '↑ 31% vs ayer', stroke: '#7c3aed', icon: Graph, tone: 'violet' },
-  { title: 'Precisión del modelo', value: '94%', subtitle: '↑ 6% vs semana anterior', stroke: '#16a34a', icon: Target, tone: 'green' },
-  { title: 'Narrativas críticas', value: '23', subtitle: '↑ 27% vs ayer', stroke: '#dc2626', icon: WarningCircle, tone: 'red' },
+  { title: 'Narrativas analizadas hoy', value: '1,247', subtitle: 'â†‘ 24% vs ayer', stroke: '#2563eb', icon: ChatTeardropText, tone: 'blue' },
+  { title: 'Grupos de narrativas', value: '86', subtitle: 'â†‘ 18% vs ayer', stroke: '#ea580c', icon: Stack, tone: 'orange' },
+  { title: 'Coincidencias encontradas', value: '327', subtitle: 'â†‘ 31% vs ayer', stroke: '#7c3aed', icon: Graph, tone: 'violet' },
+  { title: 'PrecisiÃ³n del modelo', value: '94%', subtitle: 'â†‘ 6% vs semana anterior', stroke: '#16a34a', icon: Target, tone: 'green' },
+  { title: 'Narrativas crÃ­ticas', value: '23', subtitle: 'â†‘ 27% vs ayer', stroke: '#dc2626', icon: WarningCircle, tone: 'red' },
 ]
 
 const tabs = ['Todas', 'Alta similitud', 'Patrones detectados', 'Grupos de riesgo'] as const
@@ -77,33 +77,33 @@ const narratives: NarrativeRow[] = [
   {
     id: '#FR-87291',
     similarity: '96%',
-    severity: 'CRÍTICO',
-    excerpt: 'El vehículo se encontraba estacionado y fue impactado por alcance en la parte trasera por otro automóvil...',
-    insured: 'Carlos Méndez',
+    severity: 'CRÃTICO',
+    excerpt: 'El vehÃ­culo se encontraba estacionado y fue impactado por alcance en la parte trasera por otro automÃ³vil...',
+    insured: 'Carlos MÃ©ndez',
     date: '28/05/2025',
     amount: '$28,450',
     vehicle: 'KIA Sportage 2021',
     provider: 'Taller Express',
-    city: 'Medellín, Antioquia',
+    city: 'MedellÃ­n, Antioquia',
   },
   {
     id: '#FR-76123',
     similarity: '93%',
     severity: 'ALTO',
-    excerpt: 'Vehículo detenido en semáforo, es impactado por detrás por otro vehículo a baja velocidad...',
-    insured: 'Ana Rodríguez',
+    excerpt: 'VehÃ­culo detenido en semÃ¡foro, es impactado por detrÃ¡s por otro vehÃ­culo a baja velocidad...',
+    insured: 'Ana RodrÃ­guez',
     date: '28/05/2025',
     amount: '$15,230',
     vehicle: 'Mazda CX-5 2020',
-    provider: 'AutoMecánica L&R',
+    provider: 'AutoMecÃ¡nica L&R',
     city: 'Envigado, Antioquia',
   },
   {
     id: '#FR-65109',
     similarity: '91%',
     severity: 'ALTO',
-    excerpt: 'Impacto trasero mientras el vehículo se encontraba detenido en congestión vehicular...',
-    insured: 'Pedro Gómez',
+    excerpt: 'Impacto trasero mientras el vehÃ­culo se encontraba detenido en congestiÃ³n vehicular...',
+    insured: 'Pedro GÃ³mez',
     date: '27/05/2025',
     amount: '$9,890',
     vehicle: 'Hyundai Tucson 2022',
@@ -114,20 +114,20 @@ const narratives: NarrativeRow[] = [
     id: '#FR-55867',
     similarity: '89%',
     severity: 'MEDIO',
-    excerpt: 'Vehículo detenido por tránsito lento, colisión trasera sin daños mayores aparentes...',
+    excerpt: 'VehÃ­culo detenido por trÃ¡nsito lento, colisiÃ³n trasera sin daÃ±os mayores aparentes...',
     insured: 'Laura Torres',
     date: '27/05/2025',
     amount: '$6,420',
     vehicle: 'Chevrolet Spark 2019',
     provider: 'Taller La 80',
-    city: 'Itagüí, Antioquia',
+    city: 'ItagÃ¼Ã­, Antioquia',
   },
   {
     id: '#FR-44321',
     similarity: '88%',
     severity: 'ALTO',
-    excerpt: 'Alcance por detrás en vía urbana, el vehículo estaba frenado por tráfico...',
-    insured: 'Miguel Ramírez',
+    excerpt: 'Alcance por detrÃ¡s en vÃ­a urbana, el vehÃ­culo estaba frenado por trÃ¡fico...',
+    insured: 'Miguel RamÃ­rez',
     date: '26/05/2025',
     amount: '$3,210',
     vehicle: 'Nissan Versa 2021',
@@ -137,10 +137,10 @@ const narratives: NarrativeRow[] = [
 ]
 
 const patternCards = [
-  { title: 'Patrón: Impacto trasero', desc: 'Coincidencias en colisiones por alcance en vehículos detenidos o a baja velocidad.', cases: '142 casos', level: 'Alto', tone: 'red' },
-  { title: 'Patrón: Semáforo / Tráfico', desc: 'Narrativas relacionadas con detenciones en semáforos o congestión vehicular.', cases: '98 casos', level: 'Medio', tone: 'orange' },
-  { title: 'Patrón: Estacionado', desc: 'Vehículos estacionados impactados en la parte trasera.', cases: '64 casos', level: 'Medio', tone: 'violet' },
-  { title: 'Patrón: Vía urbana', desc: 'Colisiones en calles y avenidas de zonas urbanas.', cases: '55 casos', level: 'Bajo', tone: 'blue' },
+  { title: 'PatrÃ³n: Impacto trasero', desc: 'Coincidencias en colisiones por alcance en vehÃ­culos detenidos o a baja velocidad.', cases: '142 casos', level: 'Alto', tone: 'red' },
+  { title: 'PatrÃ³n: SemÃ¡foro / TrÃ¡fico', desc: 'Narrativas relacionadas con detenciones en semÃ¡foros o congestiÃ³n vehicular.', cases: '98 casos', level: 'Medio', tone: 'orange' },
+  { title: 'PatrÃ³n: Estacionado', desc: 'VehÃ­culos estacionados impactados en la parte trasera.', cases: '64 casos', level: 'Medio', tone: 'violet' },
+  { title: 'PatrÃ³n: VÃ­a urbana', desc: 'Colisiones en calles y avenidas de zonas urbanas.', cases: '55 casos', level: 'Bajo', tone: 'blue' },
 ]
 
 const similarIds = [
@@ -251,7 +251,7 @@ export default function NarrativasSimilaresPage() {
           : activeTab === 'Alta similitud'
             ? Number(item.similarity.replace('%', '')) >= 88
             : activeTab === 'Patrones detectados'
-              ? ['CRÍTICO', 'ALTO'].includes(item.severity)
+              ? ['CRÃTICO', 'ALTO'].includes(item.severity)
               : true
 
       return matchesQuery && matchesTab
@@ -542,7 +542,7 @@ export default function NarrativasSimilaresPage() {
         .severity {
           display:inline-flex; align-items:center; padding: 2px 8px; border-radius:999px; font-family:'JetBrains Mono', monospace; font-size: 11px; font-weight:700;
         }
-        .severity.crítico { background: rgba(220,38,38,.08); color: #ef4444; }
+        .severity.crÃ­tico { background: rgba(220,38,38,.08); color: #ef4444; }
         .severity.alto { background: rgba(234,88,12,.08); color: #f97316; }
         .severity.medio { background: rgba(217,119,6,.08); color: #d97706; }
         .muted { color: var(--text-secondary); font-size: 12px; }
@@ -641,11 +641,11 @@ export default function NarrativasSimilaresPage() {
               <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
-                placeholder="Buscar narrativa, caso, asegurado, vehículo..."
+                placeholder="Buscar narrativa, caso, asegurado, vehÃ­culo..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
-              <span className="search-shortcut">⌘ K</span>
+              <span className="search-shortcut">âŒ˜ K</span>
             </div>
 
             <div className="top-right">
@@ -692,12 +692,12 @@ export default function NarrativasSimilaresPage() {
 
               <div style={{ background: '#fff', border: '1px solid #d7dfee', borderRadius: 12, padding: 16, display: 'grid', gap: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Buscar narrativas similares en tiempo real</h2>
-                <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Ingresa la descripción del siniestro para comparar con la base de datos usando IA (TF-IDF)</p>
+                <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Ingresa la descripciÃ³n del siniestro para comparar con la base de datos usando IA (TF-IDF)</p>
                 <textarea
                   id="narrative-compare-input"
                   value={compareText}
                   onChange={e => setCompareText(e.target.value)}
-                  placeholder="Describe el siniestro aquí... Ej: El vehículo fue impactado por detrás mientras estaba detenido en el semáforo..."
+                  placeholder="Describe el siniestro aquÃ­... Ej: El vehÃ­culo fue impactado por detrÃ¡s mientras estaba detenido en el semÃ¡foro..."
                   style={{ width: '100%', minHeight: 80, padding: '10px 14px', borderRadius: 10, border: '1px solid #d7dfee', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }}
                 />
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -707,7 +707,7 @@ export default function NarrativasSimilaresPage() {
                     disabled={comparing || !compareText.trim()}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 40, padding: '0 18px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 700, fontSize: 14, cursor: comparing ? 'wait' : 'pointer', opacity: (!compareText.trim() || comparing) ? 0.6 : 1 }}
                   >
-                    {comparing ? 'Buscando...' : '🔍 Buscar similares'}
+                    {comparing ? 'Buscando...' : 'ðŸ” Buscar similares'}
                   </button>
                   {compareError && <span style={{ color: '#dc2626', fontSize: 13 }}>{compareError}</span>}
                 </div>
@@ -796,7 +796,7 @@ export default function NarrativasSimilaresPage() {
                             <strong>{row.amount}</strong>
                           </div>
                           <div>
-                            <span className="muted">Vehículo</span>
+                            <span className="muted">VehÃ­culo</span>
                             <strong>{row.vehicle}</strong>
                           </div>
                           <div className="mini-actions">
@@ -864,7 +864,7 @@ export default function NarrativasSimilaresPage() {
 
                     <div className="detail-list">
                       <div className="detail-row"><span>Asegurado</span><strong>{selected.insured}</strong></div>
-                      <div className="detail-row"><span>Vehículo</span><strong>{selected.vehicle}</strong></div>
+                      <div className="detail-row"><span>VehÃ­culo</span><strong>{selected.vehicle}</strong></div>
                       <div className="detail-row"><span>Fecha del evento</span><strong className="mono">{selected.date}</strong></div>
                       <div className="detail-row"><span>Monto reclamado</span><strong>{selected.amount}</strong></div>
                       <div className="detail-row"><span>Proveedor</span><strong>{selected.provider}</strong></div>
@@ -875,12 +875,12 @@ export default function NarrativasSimilaresPage() {
                   <section className="right-section">
                     <h3>Fragmento de narrativa</h3>
                     <div className="quote-box">
-                      “El vehículo se encontraba estacionado en la vía esperando el cambio de semáforo, cuando fue impactado por alcance en la parte trasera por otro automóvil. El impacto fue leve pero causó daños en el parachoques y la tapa del baúl.”
+                      â€œEl vehÃ­culo se encontraba estacionado en la vÃ­a esperando el cambio de semÃ¡foro, cuando fue impactado por alcance en la parte trasera por otro automÃ³vil. El impacto fue leve pero causÃ³ daÃ±os en el parachoques y la tapa del baÃºl.â€
                     </div>
                   </section>
 
                   <section className="right-section">
-                    <h3>Similares más relevantes</h3>
+                    <h3>Similares mÃ¡s relevantes</h3>
                     <div className="similar-list">
                       {similarIds.map((item) => (
                         <div className="similar-row" key={item.id}>

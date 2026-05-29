@@ -106,18 +106,18 @@ type MapPoint = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: Warning, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
+  { label: 'Casos crÃ­ticos', icon: Warning, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Calculator, href: '/calculadora', group: 'tools' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'Configuración', icon: Gear, href: '/configuracion', group: 'tools' },
+  { label: 'ConfiguraciÃ³n', icon: Gear, href: '/configuracion', group: 'tools' },
 ]
 
 const sparkData = {
@@ -132,22 +132,22 @@ const sparkConfigs: SparkConfig[] = [
   {
     title: 'Siniestros totales',
     value: '1,247',
-    subtitle: '↑ 24% vs ayer',
+    subtitle: 'â†‘ 24% vs ayer',
     icon: MapPin,
     iconTone: 'red',
     stroke: '#dc2626',
     dataKey: 'siniestros',
-    delta: '↑ 24% vs ayer',
+    delta: 'â†‘ 24% vs ayer',
   },
   {
-    title: 'Alta concentración',
+    title: 'Alta concentraciÃ³n',
     value: '312',
-    subtitle: 'Zonas críticas',
+    subtitle: 'Zonas crÃ­ticas',
     icon: Fire,
     iconTone: 'orange',
     stroke: '#ea580c',
     dataKey: 'concentracion',
-    delta: 'Zonas críticas',
+    delta: 'Zonas crÃ­ticas',
   },
   {
     title: 'Ciudades activas',
@@ -162,12 +162,12 @@ const sparkConfigs: SparkConfig[] = [
   {
     title: 'Monto reclamado',
     value: '$2.45M',
-    subtitle: '↑ 32% vs ayer',
+    subtitle: 'â†‘ 32% vs ayer',
     icon: MapPin,
     iconTone: 'blue',
     stroke: '#2563eb',
     dataKey: 'monto',
-    delta: '↑ 32% vs ayer',
+    delta: 'â†‘ 32% vs ayer',
   },
   {
     title: 'Proveedores vinculados',
@@ -188,7 +188,7 @@ const ECUADOR_BOUNDS = [
 ] as const
 
 const mapHotspots: MapHotspot[] = [
-  { id: 'quito', name: 'Quito Centro', lat: -0.1807, lng: -78.4678, count: 128, level: 'Crítico', amount: '$1.2M', color: '#dc2626', radius: 120000, kind: 'heat' },
+  { id: 'quito', name: 'Quito Centro', lat: -0.1807, lng: -78.4678, count: 128, level: 'CrÃ­tico', amount: '$1.2M', color: '#dc2626', radius: 120000, kind: 'heat' },
   { id: 'guayaquil', name: 'Guayaquil Norte', lat: -2.1709, lng: -79.9224, count: 78, level: 'Alto', amount: '$680K', color: '#dc2626', radius: 90000, kind: 'heat' },
   { id: 'cuenca', name: 'Cuenca Centro', lat: -2.9005, lng: -79.0059, count: 45, level: 'Alto', amount: '$390K', color: '#ea580c', radius: 65000, kind: 'shop' },
   { id: 'manta', name: 'Manta', lat: -0.9677, lng: -80.7089, count: 36, level: 'Medio', amount: '$290K', color: '#f97316', radius: 50000, kind: 'shop' },
@@ -213,16 +213,16 @@ const individualClaims: MapPoint[] = [
 ]
 
 const cityRows = [
-  { name: 'Medellín', value: 428, tone: 'red', width: '100%' },
+  { name: 'MedellÃ­n', value: 428, tone: 'red', width: '100%' },
   { name: 'Envigado', value: 256, tone: 'orange', width: '60%' },
   { name: 'Bello', value: 184, tone: 'orange', width: '43%' },
-  { name: 'Itagüí', value: 128, tone: 'yellow', width: '30%' },
+  { name: 'ItagÃ¼Ã­', value: 128, tone: 'yellow', width: '30%' },
   { name: 'Sabaneta', value: 86, tone: 'green', width: '20%' },
 ]
 
 const suspiciousShops = [
   { name: 'Taller Express', cases: 58, tone: 'red' },
-  { name: 'AutoMecánica L&R', cases: 41, tone: 'red' },
+  { name: 'AutoMecÃ¡nica L&R', cases: 41, tone: 'red' },
   { name: 'Car Center Pro', cases: 33, tone: 'red' },
   { name: 'Taller La 80', cases: 27, tone: 'orange' },
   { name: 'MotorFix', cases: 19, tone: 'orange' },
@@ -232,65 +232,65 @@ const patternCards = [
   {
     title: 'Narrativas similares',
     value: 327,
-    delta: '↑ 18% vs ayer',
+    delta: 'â†‘ 18% vs ayer',
     icon: FileText,
     tone: 'red',
   },
   {
     title: 'Redes colaborativas',
     value: 42,
-    delta: '↑ 12% vs ayer',
+    delta: 'â†‘ 12% vs ayer',
     icon: Graph,
     tone: 'blue',
   },
   {
     title: 'Siniestros recurrentes',
     value: 198,
-    delta: '↑ 22% vs ayer',
+    delta: 'â†‘ 22% vs ayer',
     icon: ArrowsClockwise,
     tone: 'green',
   },
   {
-    title: 'Zonas nuevas críticas',
+    title: 'Zonas nuevas crÃ­ticas',
     value: 7,
-    delta: '↑ 100% vs ayer',
+    delta: 'â†‘ 100% vs ayer',
     icon: MapPin,
     tone: 'red',
   },
 ]
 
 const filters = {
-  fechas: ['Hoy', 'Ayer', 'Últimos 7 días', 'Últimos 30 días', 'Personalizado'],
-  ciudades: ['Todas', 'Medellín', 'Envigado', 'Bello', 'Itagüí', 'Sabaneta', 'Bogotá', 'Cali'],
-  tipos: ['Todos', 'Vehículos', 'Salud', 'Hogar', 'SOAT', 'Vida'],
-  riesgo: ['Todos', 'Crítico', 'Alto', 'Medio', 'Bajo'],
+  fechas: ['Hoy', 'Ayer', 'Ãšltimos 7 dÃ­as', 'Ãšltimos 30 dÃ­as', 'Personalizado'],
+  ciudades: ['Todas', 'MedellÃ­n', 'Envigado', 'Bello', 'ItagÃ¼Ã­', 'Sabaneta', 'BogotÃ¡', 'Cali'],
+  tipos: ['Todos', 'VehÃ­culos', 'Salud', 'Hogar', 'SOAT', 'Vida'],
+  riesgo: ['Todos', 'CrÃ­tico', 'Alto', 'Medio', 'Bajo'],
 }
 
 const alerts = [
   {
-    title: 'Nueva zona crítica detectada',
-    subtitle: 'Sector La 80 - Medellín',
+    title: 'Nueva zona crÃ­tica detectada',
+    subtitle: 'Sector La 80 - MedellÃ­n',
     time: '09:42',
     icon: Warning,
     tone: 'red',
   },
   {
-    title: 'Concentración inusual de siniestros',
-    subtitle: 'Envigado - Zúñiga',
+    title: 'ConcentraciÃ³n inusual de siniestros',
+    subtitle: 'Envigado - ZÃºÃ±iga',
     time: '09:35',
     icon: Fire,
     tone: 'orange',
   },
   {
     title: 'Taller vinculado a 5 siniestros',
-    subtitle: 'Taller Express - Itagüí',
+    subtitle: 'Taller Express - ItagÃ¼Ã­',
     time: '09:28',
     icon: Users,
     tone: 'violet',
   },
   {
-    title: 'Patrón recurrente detectado',
-    subtitle: 'Bello - Niquía',
+    title: 'PatrÃ³n recurrente detectado',
+    subtitle: 'Bello - NiquÃ­a',
     time: '09:21',
     icon: ArrowsClockwise,
     tone: 'blue',
@@ -530,8 +530,8 @@ function EcuadorLayers({
               radius={4}
               pathOptions={{ color: '#ec4899', fillColor: '#ec4899', fillOpacity: 0.9, weight: 1 }}
               eventHandlers={{
-                mouseover: (event: LeafletMouseEvent) => showTooltip(point, event.latlng.lat, event.latlng.lng, point.count, 'Crítico', 'Siniestro individual'),
-                mousemove: (event: LeafletMouseEvent) => showTooltip(point, event.latlng.lat, event.latlng.lng, point.count, 'Crítico', 'Siniestro individual'),
+                mouseover: (event: LeafletMouseEvent) => showTooltip(point, event.latlng.lat, event.latlng.lng, point.count, 'CrÃ­tico', 'Siniestro individual'),
+                mousemove: (event: LeafletMouseEvent) => showTooltip(point, event.latlng.lat, event.latlng.lng, point.count, 'CrÃ­tico', 'Siniestro individual'),
                 mouseout: () => setTooltip((current) => ({ ...current, visible: false })),
               }}
             />
@@ -614,14 +614,14 @@ export default function MapaSiniestrosPage() {
             count: d.cantidad_siniestros || parseInt(d.label) || 1,
             level: d.riesgo || 'Alto',
             amount: d.total_reclamado ? `$${d.total_reclamado.toLocaleString()}` : '$0',
-            color: d.tone === 'red' || d.riesgo === 'Crítico' ? '#dc2626' : (d.tone === 'orange' ? '#ea580c' : '#3b82f6'),
+            color: d.tone === 'red' || d.riesgo === 'CrÃ­tico' ? '#dc2626' : (d.tone === 'orange' ? '#ea580c' : '#3b82f6'),
             radius: d.cantidad_siniestros > 10 ? 120000 : 60000,
             kind: 'heat'
           }))
           setApiHotspots(mapped)
         }
       })
-      .catch(err => console.log('Usando fallback estático para mapas', err))
+      .catch(err => console.log('Usando fallback estÃ¡tico para mapas', err))
   }, [])
 
   const cityRowsComputed = useMemo(() => {
@@ -1431,7 +1431,7 @@ export default function MapaSiniestrosPage() {
           font-weight: 700;
         }
 
-        .risk-chip.risk-crítico { background: rgba(220, 38, 38, 0.12); color: #fca5a5; }
+        .risk-chip.risk-crÃ­tico { background: rgba(220, 38, 38, 0.12); color: #fca5a5; }
         .risk-chip.risk-alto { background: rgba(234, 88, 12, 0.12); color: #fdba74; }
         .risk-chip.risk-medio { background: rgba(217, 119, 6, 0.12); color: #fcd34d; }
         .risk-chip.risk-bajo { background: rgba(22, 163, 74, 0.12); color: #86efac; }
@@ -2068,11 +2068,11 @@ export default function MapaSiniestrosPage() {
               <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
-                placeholder="Buscar ubicación, zona, ciudad, taller, asegurado..."
+                placeholder="Buscar ubicaciÃ³n, zona, ciudad, taller, asegurado..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
-              <span className="search-shortcut">⌘ K</span>
+              <span className="search-shortcut">âŒ˜ K</span>
             </div>
 
             <div className="topbar-right">
@@ -2102,7 +2102,7 @@ export default function MapaSiniestrosPage() {
               <div className="page-head">
                 <div>
                   <h1>Mapa de siniestros</h1>
-                  <p>Visualiza la concentración, distribución y patrones de siniestros en tiempo real</p>
+                  <p>Visualiza la concentraciÃ³n, distribuciÃ³n y patrones de siniestros en tiempo real</p>
                 </div>
 
                 <div className="head-actions">
@@ -2149,7 +2149,7 @@ export default function MapaSiniestrosPage() {
                     className={`map-tab ${mapMode === 'satellite' ? 'is-active' : ''}`}
                     onClick={() => setMapMode('satellite')}
                   >
-                    Satélite
+                    SatÃ©lite
                   </button>
                 </div>
 
@@ -2158,9 +2158,9 @@ export default function MapaSiniestrosPage() {
                     +
                   </button>
                   <button className="tool-button" type="button" onClick={() => setZoom((current) => Math.max(0.8, Number((current - 0.1).toFixed(1))))}>
-                    −
+                    âˆ’
                   </button>
-                  <button className="tool-button" type="button" aria-label="Mi ubicación">
+                  <button className="tool-button" type="button" aria-label="Mi ubicaciÃ³n">
                     <Crosshair size={15} />
                   </button>
                   <button className="tool-button" type="button" aria-label="Capas">
@@ -2207,7 +2207,7 @@ export default function MapaSiniestrosPage() {
                     <span>Bajo</span>
                     <span>Medio</span>
                     <span>Alto</span>
-                    <span>Crítico</span>
+                    <span>CrÃ­tico</span>
                   </div>
                 </div>
 
@@ -2283,7 +2283,7 @@ export default function MapaSiniestrosPage() {
 
               <section className="map-footer-grid">
                 <article className="panel">
-                  <h3>Concentración por ciudad</h3>
+                  <h3>ConcentraciÃ³n por ciudad</h3>
                   <div className="city-list">
                     {cityRowsComputed.map((city) => (
                       <div className="city-progress" key={city.name}>
@@ -2379,7 +2379,7 @@ export default function MapaSiniestrosPage() {
           </section>
 
           <section className="right-section alerts-fade">
-            <h3 className="alerts-panel-title">Alertas geográficas (IA)</h3>
+            <h3 className="alerts-panel-title">Alertas geogrÃ¡ficas (IA)</h3>
             <div className="geo-alerts">
               {filteredAlerts.map((item) => {
                 const Icon = item.icon

@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ArrowRight, List } from '@phosphor-icons/react'
+import { ArrowRight, CaretDown } from '@phosphor-icons/react'
 
 const navItems = [
-  { href: '/#problema', label: 'Problema' },
-  { href: '/#solucion', label: 'Solución' },
-  { href: '/#datos', label: 'Datos' },
-  { href: '/#arquitectura', label: 'Arquitectura' },
+  { href: '/#solucion', label: 'Producto' },
+  { href: '/#como-funciona', label: 'Soluciones' },
+  { href: '/#evidencia', label: 'Tecnologia' },
+  { href: '/#evidencia', label: 'Recursos' },
+  { href: '/#solucion', label: 'Empresa' },
 ]
 
 type SiteShellProps = {
@@ -37,17 +38,17 @@ export function SiteShell({ children }: SiteShellProps) {
             {navItems.map((item) => (
               <Link key={item.label} to={item.href} className="nav-link">
                 {item.label}
+                <CaretDown size={12} weight="bold" />
               </Link>
             ))}
           </nav>
 
           <div className="header-actions">
-            <button type="button" className="btn btn-ghost header-menu">
-              <List size={18} weight="bold" />
-              Menú
-            </button>
+            <NavLink to="/demo" className="btn btn-secondary header-login">
+              Iniciar sesion
+            </NavLink>
             <NavLink to="/demo" className="btn btn-primary">
-              Probar demo
+              Solicitar demo
               <ArrowRight size={16} weight="bold" />
             </NavLink>
           </div>

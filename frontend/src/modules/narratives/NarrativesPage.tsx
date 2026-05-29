@@ -71,7 +71,7 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/demo', group: 'tools' },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
 ]
 
 const kpiData = [

@@ -1,7 +1,7 @@
 import {
   Bell, Building, CirclesThree, House,
   MapTrifold, MagnifyingGlass, ShieldCheck,
-  Stethoscope, UserCircle, UsersThree, WarningCircle, FileText
+  Stethoscope, UserCircle, UsersThree, WarningCircle, FileText, SlidersHorizontal
 } from '@phosphor-icons/react'
 import './ProvidersPage.css'
 
@@ -23,6 +23,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
 ]
 
 const smartCards = [

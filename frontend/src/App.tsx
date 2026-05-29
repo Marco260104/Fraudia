@@ -13,6 +13,7 @@ import VehiclesPage from './modules/vehicles/VehiclesPage'
 import { ProvidersPage } from './modules/providers/ProvidersPage'
 import { CalculatorPage } from './modules/calculator/CalculatorPage'
 import { ReportsPage } from './modules/reports/ReportsPage'
+import { ConfigPage } from './modules/config/ConfigPage'
 
 function App() {
   const location = useLocation()
@@ -33,6 +34,7 @@ function App() {
         <Route path="/proveedores" element={<ProvidersPage />} />
         <Route path="/calculadora" element={<CalculatorPage />} />
         <Route path="/reportes" element={<ReportsPage />} />
+        <Route path="/configuracion" element={<ConfigPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SiteShell>

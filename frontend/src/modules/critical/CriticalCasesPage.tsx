@@ -35,7 +35,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ChartLineUp, href: '/calculadora' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/demo' },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion' },
 ]
 
 const overviewCards = [

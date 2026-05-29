@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Bell, CirclesThree, House, MapTrifold, ShieldCheck,
   Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
-  Brain, ArrowRight
+  Brain, ArrowRight, SlidersHorizontal
 } from '@phosphor-icons/react'
 import './CalculatorPage.css'
 
@@ -24,6 +24,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: true },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
 ]
 
 export function CalculatorPage() {

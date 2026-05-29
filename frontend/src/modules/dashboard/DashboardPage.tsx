@@ -45,16 +45,81 @@ export function DashboardPage() {
   const [vehicles, setVehicles] = useState<any[]>([])
   const [insureds, setInsureds] = useState<any[]>([])
 
-  // COGNITIVE CALCULATOR
+  // ADD DATA FORMS STATE (relational + validated)
+  const [showAddProveedor, setShowAddProveedor] = useState(false)
+  const [showAddAsegurado, setShowAddAsegurado] = useState(false)
+  const [showAddSiniestro, setShowAddSiniestro] = useState(false)
+  const [addLoading, setAddLoading] = useState(false)
+  const [addMessage, setAddMessage] = useState<{type:'success'|'error', text:string} | null>(null)
+
+  // Form data
+  const [newProveedor, setNewProveedor] = useState({ id_proveedor: '', nombre_proveedor: '', ciudad_proveedor: 'Quito', tipo_proveedor: 'Taller mecánico', lista_restrictiva: 'No' })
+  const [newAsegurado, setNewAsegurado] = useState({ id_asegurado: '', nombres_asegurado: '', ciudad: 'Quito', antiguedad_asegurado: 3, reclamos_ult_12m: 0, segmento: 'Individual' })
+  const [newSiniestro, setNewSiniestro] = useState({ 
+    id_siniestro: '', id_poliza: '', id_asegurado: '', ramo: 'Vehículos', placa_vehiculo_asegurado: '', 
+    cobertura: 'Choque', fecha_ocurrencia: new Date().toISOString().split('T')[0], 
+    fecha_reporte: new Date().toISOString().split('T')[0], monto_reclamado: 6500, id_proveedor: '', docs_completos: 'Si', sucursal: 'Quito'
+  })
+
+  // COGNITIVE CALCULATOR - Expanded per Hackathon signals (borde vigencia, demora reporte, docs, frecuencia, monto vs suma, proveedor restrictivo)
   const [calcInput, setCalcInput] = useState({
     fecha_evento: new Date().toISOString().split('T')[0],
     ramo: 'Vehículos',
-    placa: '',
-    monto_reclamado: 12000,
-    id_proveedor: ''
+    placa: '', // General: placa / ID paciente / referencia predio
+    monto_reclamado: 8500,
+    id_proveedor: '',
+    // Nuevos campos alineados al problema del Hackathon y datos reales
+    fecha_inicio_poliza: new Date(Date.now() - 1000*3600*24*120).toISOString().split('T')[0], // ~4 meses atrás
+    fecha_reporte: new Date().toISOString().split('T')[0],
+    docs_completos: 'Si' as 'Si' | 'No',
+    reclamos_previos: 0,
+    suma_asegurada: 25000,
+    cobertura: 'Choque'
   })
   const [calcResult, setCalcResult] = useState<any>(null)
   const [calcLoading, setCalcLoading] = useState(false)
+
+  // === HELPERS RAMO-AWARE PARA CALCULADORA (según problema Hackathon) ===
+  const getRamoConfig = (ramo: string) => {
+    if (ramo === 'Salud') {
+      return {
+        idLabel: 'ID Paciente / Beneficiario (opcional)',
+        idPlaceholder: 'ej: PAC-45821 o cédula anonimizada',
+        icon: '🏥',
+        defaultCobertura: 'Hospitalización',
+        coberturas: ['Hospitalización', 'Cirugía', 'Consulta Médica', 'Atención de Emergencia', 'Medicamentos', 'Exámenes'],
+        providerLabel: 'Clínica / Hospital / Proveedor Médico',
+        providerPlaceholder: 'ej: HOSP-002 o CLINICA-015'
+      }
+    }
+    if (ramo === 'Hogar') {
+      return {
+        idLabel: 'Referencia del Inmueble / Predio (opcional)',
+        idPlaceholder: 'ej: CASA-221 o dirección resumida',
+        icon: '🏠',
+        defaultCobertura: 'Daño por Agua',
+        coberturas: ['Incendio', 'Daño por Agua', 'Robo', 'Responsabilidad Civil', 'Desastre Natural', 'Rotura de Cristales'],
+        providerLabel: 'Contratista / Taller / Perito',
+        providerPlaceholder: 'ej: PROV-020 o PERITO-003'
+      }
+    }
+    // Vehículos por defecto
+    return {
+      idLabel: 'Placa del Vehículo (opcional)',
+      idPlaceholder: 'ej: GBK-1234 o MNT-7384',
+      icon: '🚗',
+      defaultCobertura: 'Choque',
+      coberturas: ['Choque', 'Robo', 'Pérdida Total', 'Daño Parcial', 'Responsabilidad Civil'],
+      providerLabel: 'Taller / Proveedor Asociado',
+      providerPlaceholder: 'ej: TALLER-007 o PROV-022'
+    }
+  }
+
+  const currentConfig = getRamoConfig(calcInput.ramo)
+
+  const coberturaOptions = currentConfig.coberturas
+
+  // === FIN HELPERS ===
 
   // CALIBRATOR MODEL STATUS
   const [modelStatus, setModelStatus] = useState<any>(null)
@@ -176,6 +241,91 @@ export function DashboardPage() {
         setCalcLoading(false)
         toast.error('Error al invocar el motor de IA')
       })
+  }
+
+  // Handler para cambio de ramo: resetea campos irrelevantes y pone cobertura por defecto
+  const handleRamoChange = (nuevoRamo: string) => {
+    const cfg = getRamoConfig(nuevoRamo)
+    setCalcInput(prev => ({
+      ...prev,
+      ramo: nuevoRamo,
+      placa: '', // limpiar identificador anterior (placa vs paciente vs predio)
+      cobertura: cfg.defaultCobertura
+    }))
+    setCalcResult(null) // limpiar resultado anterior al cambiar de tipo de siniestro
+  }
+
+  // === AGREGAR DATOS - FUNCIONES CON VALIDACIÓN Y RELACIONES ===
+  const refreshEntities = () => {
+    fetch(`${API_BASE_URL}/api/providers`).then(r => r.json()).then(d => d && setProviders(d)).catch(() => {})
+    fetch(`${API_BASE_URL}/api/insureds`).then(r => r.json()).then(d => d && setInsureds(d)).catch(() => {})
+    fetch(`${API_BASE_URL}/api/vehicles`).then(r => r.json()).then(d => d && setVehicles(d)).catch(() => {})
+  }
+
+  const submitNewProveedor = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newProveedor.id_proveedor || !newProveedor.nombre_proveedor) {
+      setAddMessage({type:'error', text: 'ID y Nombre son obligatorios'})
+      return
+    }
+    setAddLoading(true)
+    setAddMessage(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/proveedores`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newProveedor)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Error')
+      setAddMessage({type:'success', text: data.message || 'Proveedor agregado correctamente'})
+      setNewProveedor({ id_proveedor: '', nombre_proveedor: '', ciudad_proveedor: 'Quito', tipo_proveedor: 'Taller mecánico', lista_restrictiva: 'No' })
+      setTimeout(() => { setShowAddProveedor(false); setAddMessage(null); refreshEntities() }, 1200)
+    } catch (err: any) {
+      setAddMessage({type:'error', text: err.message})
+    } finally { setAddLoading(false) }
+  }
+
+  const submitNewAsegurado = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newAsegurado.id_asegurado || !newAsegurado.nombres_asegurado) {
+      setAddMessage({type:'error', text: 'ID y Nombre completo son obligatorios'})
+      return
+    }
+    setAddLoading(true); setAddMessage(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/asegurados`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newAsegurado)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Error')
+      setAddMessage({type:'success', text: data.message})
+      setNewAsegurado({ id_asegurado: '', nombres_asegurado: '', ciudad: 'Quito', antiguedad_asegurado: 3, reclamos_ult_12m: 0, segmento: 'Individual' })
+      setTimeout(() => { setShowAddAsegurado(false); setAddMessage(null); refreshEntities() }, 1200)
+    } catch (err: any) {
+      setAddMessage({type:'error', text: err.message})
+    } finally { setAddLoading(false) }
+  }
+
+  const submitNewSiniestro = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newSiniestro.id_siniestro || !newSiniestro.id_asegurado || !newSiniestro.id_poliza) {
+      setAddMessage({type:'error', text: 'ID Siniestro, ID Póliza e ID Asegurado son obligatorios'})
+      return
+    }
+    setAddLoading(true); setAddMessage(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/siniestros`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newSiniestro)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.detail || 'Error de integridad referencial')
+      setAddMessage({type:'success', text: 'Siniestro registrado. Las tablas de Vehículos, Asegurados y Proveedores se actualizaron.'})
+      setTimeout(() => { setShowAddSiniestro(false); setAddMessage(null); refreshEntities() }, 1400)
+    } catch (err: any) {
+      setAddMessage({type:'error', text: err.message})
+    } finally { setAddLoading(false) }
   }
 
   const handleUpdateThreshold = (val: number) => {
@@ -564,13 +714,43 @@ export function DashboardPage() {
             </article>
           )}
 
-          {/* TAB 4: PROVEEDORES Y TALLERES */}
+          {/* TAB 4: PROVEEDORES Y TALLERES - CON AGREGAR DATOS VALIDADO */}
           {activeTab === 'proveedores' && (
             <article className="dashboard-panel" style={{ padding: '24px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.03)' }}>
-              <div className="panel-head" style={{ marginBottom: '20px' }}>
-                <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Ranking de Proveedores y Talleres en Lista Restrictiva</h2>
-                <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Talleres asociados a sobrefacturaciones de reparación o clonación de relatos narrativos.</p>
+              <div className="panel-head" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Ranking de Proveedores y Talleres en Lista Restrictiva</h2>
+                  <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Talleres asociados a sobrefacturaciones de reparación o clonación de relatos narrativos.</p>
+                </div>
+                <button onClick={() => { setShowAddProveedor(!showAddProveedor); setAddMessage(null) }} 
+                        style={{ padding: '8px 16px', background: '#0f766e', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
+                  {showAddProveedor ? 'Cancelar' : '+ Agregar Proveedor / Clínica'}
+                </button>
               </div>
+
+              {/* FORM AGREGAR PROVEEDOR (validado, se refleja en siniestros y calculadora) */}
+              {showAddProveedor && (
+                <form onSubmit={submitNewProveedor} style={{ background: '#f8fafc', padding: '16px', borderRadius: 10, marginBottom: 16, border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr 1fr 1fr', gap: 10, alignItems: 'end' }}>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#475569'}}>ID Proveedor *</label>
+                      <input value={newProveedor.id_proveedor} onChange={e=>setNewProveedor({...newProveedor, id_proveedor: e.target.value})} placeholder="TALLER-045" required style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #cbd5e1'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#475569'}}>Nombre del Taller / Clínica *</label>
+                      <input value={newProveedor.nombre_proveedor} onChange={e=>setNewProveedor({...newProveedor, nombre_proveedor: e.target.value})} placeholder="Taller Los Andes" required style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #cbd5e1'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#475569'}}>Ciudad</label>
+                      <input value={newProveedor.ciudad_proveedor} onChange={e=>setNewProveedor({...newProveedor, ciudad_proveedor: e.target.value})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #cbd5e1'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#475569'}}>Tipo</label>
+                      <select value={newProveedor.tipo_proveedor} onChange={e=>setNewProveedor({...newProveedor, tipo_proveedor: e.target.value})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #cbd5e1'}}>
+                        <option>Taller mecánico</option><option>Clínica / Hospital</option><option>Perito</option></select></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#475569'}}>Lista Restrictiva</label>
+                      <select value={newProveedor.lista_restrictiva} onChange={e=>setNewProveedor({...newProveedor, lista_restrictiva: e.target.value})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #cbd5e1'}}>
+                        <option value="No">No</option><option value="Si">Sí</option></select></div>
+                  </div>
+                  <button type="submit" disabled={addLoading} style={{marginTop:12, background:'#0f766e',color:'#fff',padding:'8px 20px',borderRadius:6,border:'none',fontWeight:600}}>
+                    {addLoading ? 'Guardando...' : 'Guardar Proveedor (se vinculará a futuros siniestros)'}
+                  </button>
+                  {addMessage && <span style={{marginLeft:12, color: addMessage.type==='error'?'#c2410c':'#166534', fontSize:'0.85rem'}}>{addMessage.text}</span>}
+                </form>
+              )}
 
               <div className="claims-table" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="claims-head" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.8fr', padding: '10px 14px', fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
@@ -609,57 +789,41 @@ export function DashboardPage() {
             </article>
           )}
 
-          {/* TAB 5: VEHICULOS */}
-          {activeTab === 'vehiculos' && (
-            <article className="dashboard-panel" style={{ padding: '24px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.03)' }}>
-              <div className="panel-head" style={{ marginBottom: '20px' }}>
-                <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Monitoreo de Vehículos con Alta Siniestralidad</h2>
-                <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Vehículos que registran frecuencia atípica de reclamos o relatos NLP duplicados.</p>
-              </div>
-
-              <div className="claims-table" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div className="claims-head" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.5fr 1.5fr 1fr', padding: '10px 14px', fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
-                  <span>Placa</span>
-                  <span>Siniestros Activos</span>
-                  <span>Monto Total Reclamado</span>
-                  <span>Coberturas Reclamadas</span>
-                  <span>Alerta IA</span>
-                </div>
-
-                {vehicles.map((v, index) => (
-                  <div key={index} style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1.2fr 1.2fr 1.5fr 1.5fr 1fr', 
-                    padding: '12px 14px', 
-                    borderRadius: '10px', 
-                    background: '#ffffff', 
-                    border: '1px solid rgba(15, 23, 42, 0.04)',
-                    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.01)',
-                    alignItems: 'center', 
-                    fontSize: '0.9rem',
-                    color: '#13233f'
-                  }}>
-                    <strong>{v.placa}</strong>
-                    <span>{v.total_siniestros} incidentes</span>
-                    <strong style={{ color: '#0f766e' }}>${v.monto_total?.toLocaleString()}</strong>
-                    <span style={{ fontSize: '0.85rem' }}>{v.coberturas}</span>
-                    <span className={`critical-badge risk-${v.alerta ? 'rojo' : 'verde'}`} style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.78rem', width: 'fit-content' }}>
-                      {v.alerta ? '🔴 SOSPECHA' : '🟢 NORMAL'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </article>
-          )}
-
-          {/* TAB 6: ASEGURADOS */}
+          {/* TAB 6: ASEGURADOS - CON AGREGAR DATOS */}
           {activeTab === 'asegurados' && (
             <article className="dashboard-panel" style={{ padding: '24px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.03)' }}>
-              <div className="panel-head" style={{ marginBottom: '20px' }}>
-                <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Auditoría de Asegurados Recurrentes</h2>
-                <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Expediente de asegurados que muestran reclamos de alta frecuencia o riesgos atípicos.</p>
+              <div className="panel-head" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Auditoría de Asegurados Recurrentes</h2>
+                  <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Expediente de asegurados que muestran reclamos de alta frecuencia o riesgos atípicos.</p>
+                </div>
+                <button onClick={() => { setShowAddAsegurado(!showAddAsegurado); setAddMessage(null) }} 
+                        style={{ padding: '8px 16px', background: '#1e40af', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
+                  {showAddAsegurado ? 'Cancelar' : '+ Agregar Asegurado'}
+                </button>
               </div>
 
+              {showAddAsegurado && (
+                <form onSubmit={submitNewAsegurado} style={{ background: '#f0f4ff', padding: '16px', borderRadius: 10, marginBottom: 16, border: '1px solid #bfdbfe' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 2.2fr 1fr 1fr 1fr', gap: 10, alignItems: 'end' }}>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#1e40af'}}>ID Asegurado *</label>
+                      <input value={newAsegurado.id_asegurado} onChange={e=>setNewAsegurado({...newAsegurado, id_asegurado: e.target.value})} placeholder="ASEG-0892" required style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #93c5fd'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#1e40af'}}>Nombre Completo *</label>
+                      <input value={newAsegurado.nombres_asegurado} onChange={e=>setNewAsegurado({...newAsegurado, nombres_asegurado: e.target.value})} placeholder="María Elena Vargas" required style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #93c5fd'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#1e40af'}}>Ciudad</label>
+                      <input value={newAsegurado.ciudad} onChange={e=>setNewAsegurado({...newAsegurado, ciudad: e.target.value})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #93c5fd'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#1e40af'}}>Antigüedad (años)</label>
+                      <input type="number" value={newAsegurado.antiguedad_asegurado} onChange={e=>setNewAsegurado({...newAsegurado, antiguedad_asegurado: parseInt(e.target.value)||1})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #93c5fd'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#1e40af'}}>Reclamos 12m</label>
+                      <input type="number" value={newAsegurado.reclamos_ult_12m} onChange={e=>setNewAsegurado({...newAsegurado, reclamos_ult_12m: parseInt(e.target.value)||0})} style={{width:'100%',padding:'7px 10px',borderRadius:6,border:'1px solid #93c5fd'}}/></div>
+                  </div>
+                  <button type="submit" disabled={addLoading} style={{marginTop:12, background:'#1e40af',color:'#fff',padding:'8px 20px',borderRadius:6,border:'none',fontWeight:600}}>
+                    {addLoading ? 'Guardando...' : 'Crear Asegurado (podrá usarse en registro de siniestros)'}
+                  </button>
+                  {addMessage && <span style={{marginLeft:12, color: addMessage.type==='error'?'#c2410c':'#166534', fontSize:'0.85rem'}}>{addMessage.text}</span>}
+                </form>
+              )}
+              {/* ASEGURADOS TABLE */}
               <div className="claims-table" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div className="claims-head" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.2fr 1.2fr 1.2fr 1.2fr 1fr', padding: '10px 14px', fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
                   <span>ID Asegurado</span>
@@ -699,6 +863,101 @@ export function DashboardPage() {
             </article>
           )}
 
+          {/* TAB 5: VEHICULOS - CON REGISTRO DE SINIESTRO (el más importante para relaciones) */}
+          {activeTab === 'vehiculos' && (
+            <article className="dashboard-panel" style={{ padding: '24px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.03)' }}>
+              <div className="panel-head" style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 style={{ color: '#13233f', fontSize: '1.2rem', fontWeight: 'bold' }}>Monitoreo de Vehículos con Alta Siniestralidad</h2>
+                  <p style={{ color: '#5c6c87', fontSize: '0.88rem' }}>Vehículos que registran frecuencia atípica de reclamos o relatos NLP duplicados.</p>
+                </div>
+                <button onClick={() => { setShowAddSiniestro(!showAddSiniestro); setAddMessage(null) }} 
+                        style={{ padding: '8px 16px', background: '#854d0e', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}>
+                  {showAddSiniestro ? 'Cancelar' : '+ Registrar Siniestro (Vehículo)'}
+                </button>
+              </div>
+
+              {/* FORM REGISTRAR SINIESTRO - SELECTS RELACIONALES (asegurados + proveedores) */}
+              {showAddSiniestro && (
+                <form onSubmit={submitNewSiniestro} style={{ background: '#fefce8', padding: '16px', borderRadius: 10, marginBottom: 16, border: '1px solid #fde047' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.3fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>ID Siniestro *</label>
+                      <input value={newSiniestro.id_siniestro} onChange={e=>setNewSiniestro({...newSiniestro, id_siniestro:e.target.value})} placeholder="SIN-0891" required style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>ID Póliza *</label>
+                      <input value={newSiniestro.id_poliza} onChange={e=>setNewSiniestro({...newSiniestro, id_poliza:e.target.value})} placeholder="POL-0455" required style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}/></div>
+                    <div>
+                      <label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Asegurado * (seleccionar)</label>
+                      <select value={newSiniestro.id_asegurado} onChange={e=>setNewSiniestro({...newSiniestro, id_asegurado:e.target.value})} required style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}>
+                        <option value="">-- Seleccionar Asegurado --</option>
+                        {insureds.map((a:any) => <option key={a.id_asegurado} value={a.id_asegurado}>{a.id_asegurado} — {a.nombres_asegurado}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Proveedor / Taller</label>
+                      <select value={newSiniestro.id_proveedor} onChange={e=>setNewSiniestro({...newSiniestro, id_proveedor:e.target.value})} style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}>
+                        <option value="">-- (Opcional) --</option>
+                        {providers.map((p:any) => <option key={p.id_proveedor} value={p.id_proveedor}>{p.id_proveedor} — {p.nombre_proveedor}</option>)}
+                      </select>
+                    </div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Placa Vehículo</label>
+                      <input value={newSiniestro.placa_vehiculo_asegurado} onChange={e=>setNewSiniestro({...newSiniestro, placa_vehiculo_asegurado:e.target.value})} placeholder="PBA-7721" style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}/></div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Ramo</label>
+                      <select value={newSiniestro.ramo} onChange={e=>setNewSiniestro({...newSiniestro, ramo:e.target.value})} style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}>
+                        <option>Vehículos</option><option>Salud</option><option>Hogar</option></select></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Cobertura</label>
+                      <input value={newSiniestro.cobertura} onChange={e=>setNewSiniestro({...newSiniestro, cobertura:e.target.value})} style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Monto Reclamado</label>
+                      <input type="number" value={newSiniestro.monto_reclamado} onChange={e=>setNewSiniestro({...newSiniestro, monto_reclamado:parseFloat(e.target.value)||0})} style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}/></div>
+                    <div><label style={{fontSize:'0.7rem',fontWeight:700,color:'#854d0e'}}>Docs Completos</label>
+                      <select value={newSiniestro.docs_completos} onChange={e=>setNewSiniestro({...newSiniestro, docs_completos:e.target.value})} style={{width:'100%',padding:'6px 9px',borderRadius:6,border:'1px solid #facc15'}}>
+                        <option value="Si">Sí</option><option value="No">No</option></select></div>
+                  </div>
+                  <button type="submit" disabled={addLoading} style={{marginTop:12, background:'#854d0e',color:'#fff',padding:'8px 20px',borderRadius:6,border:'none',fontWeight:600}}>
+                    {addLoading ? 'Registrando con FKs...' : 'Registrar Siniestro (actualiza Vehículos + Asegurado + Proveedor)'}
+                  </button>
+                  {addMessage && <span style={{marginLeft:12, color: addMessage.type==='error'?'#c2410c':'#166534', fontSize:'0.85rem'}}>{addMessage.text}</span>}
+                  <div style={{fontSize:'0.7rem', color:'#854d0e', marginTop:6}}>El backend valida que el Asegurado y Proveedor existan. Se crean contadores automáticamente.</div>
+                </form>
+              )}
+
+              {/* VEHICULOS TABLE */}
+              <div className="claims-table" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="claims-head" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.5fr 1.5fr 1fr', padding: '10px 14px', fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <span>Placa</span>
+                  <span>Siniestros Activos</span>
+                  <span>Monto Total Reclamado</span>
+                  <span>Coberturas Reclamadas</span>
+                  <span>Alerta IA</span>
+                </div>
+
+                {vehicles.map((v, index) => (
+                  <div key={index} style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1.2fr 1.2fr 1.5fr 1.5fr 1fr', 
+                    padding: '12px 14px', 
+                    borderRadius: '10px', 
+                    background: '#ffffff', 
+                    border: '1px solid rgba(15, 23, 42, 0.04)',
+                    boxShadow: '0 4px 12px rgba(15, 23, 42, 0.01)',
+                    alignItems: 'center', 
+                    fontSize: '0.9rem',
+                    color: '#13233f'
+                  }}>
+                    <strong>{v.placa}</strong>
+                    <span>{v.total_siniestros} incidentes</span>
+                    <strong style={{ color: '#0f766e' }}>${v.monto_total?.toLocaleString()}</strong>
+                    <span style={{ fontSize: '0.85rem' }}>{v.coberturas}</span>
+                    <span className={`critical-badge risk-${v.alerta ? 'rojo' : 'verde'}`} style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.78rem', width: 'fit-content' }}>
+                      {v.alerta ? '🔴 SOSPECHA' : '🟢 NORMAL'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
+
           {/* TAB 7: CALCULADORA IA */}
           {activeTab === 'calculadora' && (
             <article className="dashboard-panel" style={{ padding: '24px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.03)' }}>
@@ -709,82 +968,158 @@ export function DashboardPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                 
-                {/* Form calculator */}
-                <form onSubmit={handleRunCalculator} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {/* Form calculator - DINÁMICO POR RAMO (corrige bug Salud pidiendo placa de carro + más datos según Hackathon) */}
+                <form onSubmit={handleRunCalculator} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  
+                  {/* Fila 1: Ramo + Cobertura (dinámica) + Fecha Ocurrencia */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1.15fr 1fr', gap: '12px' }}>
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.78rem', color: '#5c6c87', marginBottom: '6px', fontWeight: 600 }}>Ramo de Cobertura</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>RAMO DE COBERTURA</span>
                       <select 
                         value={calcInput.ramo} 
-                        onChange={(e) => setCalcInput(prev => ({ ...prev, ramo: e.target.value }))}
-                        style={{ width: '100%', padding: '10px 14px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '8px', color: '#13233f', fontSize: '0.9rem', outline: 'none' }}
+                        onChange={(e) => handleRamoChange(e.target.value)}
+                        style={{ width: '100%', padding: '9px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none', fontWeight: 600 }}
                       >
-                        <option value="Vehículos">Vehículos</option>
-                        <option value="Salud">Salud</option>
-                        <option value="Hogar">Hogar</option>
+                        <option value="Vehículos">🚗 Vehículos</option>
+                        <option value="Salud">🏥 Salud</option>
+                        <option value="Hogar">🏠 Hogar</option>
                       </select>
                     </div>
-
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.78rem', color: '#5c6c87', marginBottom: '6px', fontWeight: 600 }}>Fecha de Ocurrencia</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>TIPO DE COBERTURA</span>
+                      <select 
+                        value={calcInput.cobertura}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, cobertura: e.target.value }))}
+                        style={{ width: '100%', padding: '9px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none' }}
+                      >
+                        {coberturaOptions.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>FECHA DE OCURRENCIA</span>
                       <input 
                         type="date"
                         value={calcInput.fecha_evento}
                         onChange={(e) => setCalcInput(prev => ({ ...prev, fecha_evento: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 14px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '8px', color: '#13233f', fontSize: '0.9rem', outline: 'none' }}
+                        style={{ width: '100%', padding: '8px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none' }}
                       />
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  {/* Fila 2: Monto + Identificador (condicional por ramo) + Proveedor (label dinámico) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr 1.2fr', gap: '12px' }}>
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.78rem', color: '#5c6c87', marginBottom: '6px', fontWeight: 600 }}>Monto Reclamado ($)</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>MONTO RECLAMADO ($)</span>
                       <input 
                         type="number"
                         value={calcInput.monto_reclamado}
                         onChange={(e) => setCalcInput(prev => ({ ...prev, monto_reclamado: parseFloat(e.target.value) || 0 }))}
-                        style={{ width: '100%', padding: '9px 14px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '8px', color: '#13233f', fontSize: '0.9rem', outline: 'none' }}
+                        style={{ width: '100%', padding: '8px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none' }}
                       />
                     </div>
-
                     <div>
-                      <span style={{ display: 'block', fontSize: '0.78rem', color: '#5c6c87', marginBottom: '6px', fontWeight: 600 }}>Placa Vehículo</span>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>{currentConfig.idLabel}</span>
                       <input 
                         type="text"
-                        placeholder="ej: GBK-1234"
+                        placeholder={currentConfig.idPlaceholder}
                         value={calcInput.placa}
                         onChange={(e) => setCalcInput(prev => ({ ...prev, placa: e.target.value }))}
-                        style={{ width: '100%', padding: '9px 14px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '8px', color: '#13233f', fontSize: '0.9rem', outline: 'none' }}
+                        style={{ width: '100%', padding: '8px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none' }}
+                      />
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>{currentConfig.providerLabel}</span>
+                      <input 
+                        type="text"
+                        placeholder={currentConfig.providerPlaceholder}
+                        value={calcInput.id_proveedor}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, id_proveedor: e.target.value }))}
+                        style={{ width: '100%', padding: '8px 12px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none' }}
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.78rem', color: '#5c6c87', marginBottom: '6px', fontWeight: 600 }}>ID Proveedor / Taller Asociado</span>
-                    <input 
-                      type="text"
-                      placeholder="ej: TALLER-001"
-                      value={calcInput.id_proveedor}
-                      onChange={(e) => setCalcInput(prev => ({ ...prev, id_proveedor: e.target.value }))}
-                      style={{ width: '100%', padding: '9px 14px', background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '8px', color: '#13233f', fontSize: '0.9rem', outline: 'none' }}
-                    />
+                  {/* Fila 3: Datos de Póliza y Reporte (CLAVE para score correcto según Hackathon) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', background: 'rgba(15,23,42,0.025)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(15,23,42,0.06)' }}>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#475569', marginBottom: '3px', fontWeight: 700 }}>FECHA INICIO PÓLIZA</span>
+                      <input 
+                        type="date"
+                        value={calcInput.fecha_inicio_poliza}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, fecha_inicio_poliza: e.target.value }))}
+                        style={{ width: '100%', padding: '7px 10px', background: '#fff', border: '1px solid rgba(15,23,42,0.1)', borderRadius: '6px', fontSize: '0.82rem' }}
+                      />
+                      <span style={{ fontSize: '0.62rem', color: '#64748b' }}>→ Calcula borde de vigencia</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#475569', marginBottom: '3px', fontWeight: 700 }}>FECHA REPORTE</span>
+                      <input 
+                        type="date"
+                        value={calcInput.fecha_reporte}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, fecha_reporte: e.target.value }))}
+                        style={{ width: '100%', padding: '7px 10px', background: '#fff', border: '1px solid rgba(15,23,42,0.1)', borderRadius: '6px', fontSize: '0.82rem' }}
+                      />
+                      <span style={{ fontSize: '0.62rem', color: '#64748b' }}>→ Calcula demora denuncia</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#475569', marginBottom: '3px', fontWeight: 700 }}>SUMA ASEGURADA ($)</span>
+                      <input 
+                        type="number"
+                        value={calcInput.suma_asegurada}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, suma_asegurada: parseFloat(e.target.value) || 0 }))}
+                        style={{ width: '100%', padding: '7px 10px', background: '#fff', border: '1px solid rgba(15,23,42,0.1)', borderRadius: '6px', fontSize: '0.82rem' }}
+                      />
+                      <span style={{ fontSize: '0.62rem', color: '#64748b' }}>→ Detecta sobreaseguro</span>
+                    </div>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '0.68rem', color: '#475569', marginBottom: '3px', fontWeight: 700 }}>RECLAMOS PREVIOS (12m)</span>
+                      <input 
+                        type="number"
+                        min={0}
+                        value={calcInput.reclamos_previos}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, reclamos_previos: parseInt(e.target.value) || 0 }))}
+                        style={{ width: '100%', padding: '7px 10px', background: '#fff', border: '1px solid rgba(15,23,42,0.1)', borderRadius: '6px', fontSize: '0.82rem' }}
+                      />
+                      <span style={{ fontSize: '0.62rem', color: '#64748b' }}>→ Frecuencia sospechosa</span>
+                    </div>
                   </div>
 
-                  <button 
-                    type="submit" 
-                    disabled={calcLoading}
-                    className="btn btn-primary"
-                    style={{ width: '100%', height: '42px', fontSize: '0.9rem', marginTop: '10px' }}
-                  >
-                    {calcLoading ? 'Analizando en motor de IA...' : 'Computar Riesgo con IA'}
-                  </button>
+                  {/* Fila 4: Documentos + Botón */}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <div style={{ flex: '0 0 220px' }}>
+                      <span style={{ display: 'block', fontSize: '0.72rem', color: '#5c6c87', marginBottom: '4px', fontWeight: 700 }}>¿DOCUMENTOS COMPLETOS?</span>
+                      <select 
+                        value={calcInput.docs_completos}
+                        onChange={(e) => setCalcInput(prev => ({ ...prev, docs_completos: (e.target.value === 'No' ? 'No' : 'Si') }))}
+                        style={{ width: '100%', padding: '9px 12px', background: calcInput.docs_completos === 'No' ? '#fef2f2' : '#ffffff', border: calcInput.docs_completos === 'No' ? '1px solid #fecaca' : '1px solid rgba(15,23,42,0.1)', borderRadius: '8px', color: '#13233f', fontSize: '0.88rem', outline: 'none', fontWeight: 600 }}
+                      >
+                        <option value="Si">✅ Sí - Documentación completa</option>
+                        <option value="No">⚠️ No - Faltan documentos</option>
+                      </select>
+                    </div>
+                    
+                    <button 
+                      type="submit" 
+                      disabled={calcLoading}
+                      className="btn btn-primary"
+                      style={{ flex: 1, height: '44px', fontSize: '0.9rem', fontWeight: 700, marginTop: '4px' }}
+                    >
+                      {calcLoading ? 'Analizando en motor de IA + reglas Hackathon...' : 'Computar Riesgo ' + currentConfig.icon + ' con IA'}
+                    </button>
+                  </div>
+
+                  <p style={{ fontSize: '0.68rem', color: '#64748b', margin: '4px 0 0', lineHeight: 1.3 }}>
+                    Los campos de póliza y reporte activan las señales del Hackathon (borde vigencia, demora, docs incompletos, frecuencia, ratio monto/suma).
+                  </p>
                 </form>
 
                 {/* Calculator results */}
                 <div style={{ background: '#ffffff', border: '1px solid rgba(15, 23, 42, 0.08)', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', justifyItems: 'center', justifyContent: 'center', alignContent: 'center', minHeight: '300px', boxShadow: '0 4px 15px rgba(0,0,0,0.01)' }}>
                   {calcResult ? (
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100px', height: '100px', borderRadius: '50%', background: calcResult.level === 'Alto' ? 'rgba(194,65,12,0.06)' : 'rgba(217,119,6,0.06)', border: `3px solid ${calcResult.level === 'Alto' ? '#c2410c' : '#d97706'}`, marginBottom: '16px' }}>
+                      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100px', height: '100px', borderRadius: '50%', background: calcResult.level === 'Alto' ? 'rgba(194,65,12,0.06)' : 'rgba(217,119,6,0.06)', border: (calcResult.level === 'Alto' ? '3px solid #c2410c' : '3px solid #d97706'), marginBottom: '16px' }}>
                         <span style={{ fontSize: '2rem', fontWeight: 800, color: calcResult.level === 'Alto' ? '#c2410c' : '#d97706' }}>{calcResult.score}</span>
                         <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#5c6c87', fontWeight: 'bold' }}>Riesgo</span>
                       </div>

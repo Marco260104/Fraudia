@@ -49,10 +49,17 @@ services:
     ports:
       - "5173:5173"
     volumes:
+      # Bind mount source code for hot reload during development
       - ./frontend:/app
-      - /app/node_modules # Evita sobreescribir los node_modules de Linux con los de Windows del host
+      # IMPORTANT on Windows: This anonymous volume prevents the host's Windows node_modules
+      # (with wrong binaries) from overwriting the Linux ones inside the container.
+      # If you get "module not found" errors after `npm install` on host, run:
+      #   docker compose down -v
+      #   docker compose build --no-cache frontend
+      - /app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - fraudia_network
 

@@ -195,8 +195,8 @@ Dime cómo deseas proceder.`
                       <div className="ast-input-actions">
                         <div className="ast-input-tags">
                           <span className="ast-tag" onClick={() => setInputVal('¿Cuáles son los talleres más sospechosos?')} style={{ cursor: 'pointer' }}><Sparkle size={16} className="ast-tag-icon" weight="bold"/> ¿Talleres más sospechosos?</span>
-                          <span className="ast-tag" onClick={() => setInputVal('Explica el caso FR-76123')} style={{ cursor: 'pointer' }}><MagnifyingGlass size={16} className="ast-tag-icon" weight="bold"/> Explica FR-76123</span>
-                          <span className="ast-tag" onClick={() => setInputVal('Analiza la concentración en Medellín')} style={{ cursor: 'pointer', color: 'var(--ast-purple)' }}><MapPin size={16} className="ast-tag-icon" weight="bold"/> Concentración en Medellín</span>
+                          <span className="ast-tag" onClick={() => setInputVal('Explica el caso FR-76123')} style={{ cursor: 'pointer' }}><MagnifyingGlass size={16} className="ast-tag-icon" weight="bold"/> Explica #FR-0311</span>
+                          <span className="ast-tag" onClick={() => setInputVal('Analiza la Concentración en Esmeraldas')} style={{ cursor: 'pointer', color: 'var(--ast-purple)' }}><MapPin size={16} className="ast-tag-icon" weight="bold"/> Concentración en Esmeraldas</span>
                         </div>
                         <div className="ast-input-buttons">
                           <button className="ast-btn-send" onClick={() => handleSendMessage()}><PaperPlaneRight size={20} weight="fill" /></button>

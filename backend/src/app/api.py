@@ -322,6 +322,7 @@ class ClaimCalculatorInput(BaseModel):
     docs_completos: Optional[str] = Field("Si", description="¿Tiene documentos completos? (Si/No)")
     similitud_narrativa_max: Optional[float] = Field(0.0, description="Similitud de narrativas NLP (0.0 - 1.0) (opcional)")
     reclamos_previos: Optional[int] = Field(0, description="Número de reclamos previos del asegurado (opcional)")
+    cobertura: Optional[str] = Field("", description="Tipo de cobertura (Choque, Hospitalización, Incendio, etc.)")
 
     @validator("monto_reclamado")
     def validate_monto(cls, v):
@@ -356,6 +357,41 @@ class ReportGenerateInput(BaseModel):
     period: str = Field(..., description="Periodo de tiempo a analizar")
     risk_level: str = Field(..., description="Nivel de riesgo filtrado")
     city: str = Field(..., description="Ciudad o sucursal filtrada")
+
+# ── Entity Creation Models (for "Agregar Datos" with validation) ──────────────
+class AseguradoCreate(BaseModel):
+    id_asegurado: str = Field(..., min_length=3, description="ID único (ej: ASEG-0456)")
+    nombres_asegurado: str = Field(..., min_length=5)
+    segmento: str = Field("Individual", description="Individual / PYME / Corporativo")
+    ciudad: str = Field(..., description="Ciudad de residencia")
+    antiguedad_asegurado: int = Field(1, ge=0)
+    n_polizas_activas: int = Field(1, ge=0)
+    reclamos_ult_12m: int = Field(0, ge=0)
+    perfil_riesgo_historico: str = Field("Medio", description="Bajo / Medio / Alto")
+
+class ProveedorCreate(BaseModel):
+    id_proveedor: str = Field(..., min_length=3, description="ID único (ej: TALLER-045 o HOSP-012)")
+    nombre_proveedor: str = Field(..., min_length=4)
+    tipo_proveedor: str = Field("Taller mecánico")
+    ciudad_proveedor: str = Field(..., description="Ciudad de operación")
+    lista_restrictiva: str = Field("No", description="Si / No")
+    motivo_restriccion: str = Field("Sin observaciones")
+
+class SiniestroCreate(BaseModel):
+    """Crear siniestro respetando integridad referencial (FKs)"""
+    id_siniestro: str = Field(..., description="ID único (ej: SIN-0456)")
+    id_poliza: str = Field(..., description="Debe existir en polizas")
+    id_asegurado: str = Field(..., description="Debe existir en asegurados")
+    ramo: str = Field("Vehículos")
+    placa_vehiculo_asegurado: str = Field("N/A")
+    cobertura: str = Field("Choque")
+    fecha_ocurrencia: str = Field(...)
+    fecha_reporte: str = Field(...)
+    monto_reclamado: float = Field(..., gt=0)
+    id_proveedor: Optional[str] = Field(None, description="Opcional, debe existir si se envía")
+    docs_completos: str = Field("Si")
+    sucursal: str = Field("Quito")
+    descripcion_evento: str = Field("Siniestro reportado vía formulario de demo")
 
 # ── ENDPOINTS ─────────────────────────────────────────────────────────────────
 
@@ -799,93 +835,252 @@ def get_single_case(case_id: str):
 
 @app.post("/api/calculator", tags=["Machine Learning"], summary="Formulario cognitivo de predicción de riesgo")
 def calculate_risk(payload: ClaimCalculatorInput):
-    if MODEL_RF is None or MODEL_PREPROCESSOR is None or MODEL_REGISTRY is None:
-        return calculate_risk_fallback(payload)
+    # Construir diccionario rico con TODOS los campos del formulario (Hackathon signals)
+    row_dict: dict = {
+        "ramo": payload.ramo or "missing",
+        "monto_reclamado": float(payload.monto_reclamado or 0),
+        "id_proveedor": payload.id_proveedor or "missing",
+        "cobertura": getattr(payload, "cobertura", None) or "missing",
+        "placa_vehiculo_asegurado": payload.placa or "missing",
+        "docs_completos": payload.docs_completos or "Si",
+        "prov_lista_restrictiva": "Si" if payload.id_proveedor and payload.id_proveedor.strip().upper() in ["TALLER-001", "TALLER-003", "PROV-022", "HOSP-002", "CLINICA-015"] else "No",
+        "reclamos_previos_asegurado": int(payload.reclamos_previos or 0),
+        "suma_asegurada": float(payload.suma_asegurada or 0),
+        "similitud_narrativa_max": float(payload.similitud_narrativa_max or 0.0),
+    }
 
+    # === Cálculo de variables derivadas clave para el Hackathon ===
+    dias_desde_inicio = 180
+    dias_reporte = 0
     try:
-        try:
-            fecha_obj = datetime.strptime(payload.fecha_evento, "%Y-%m-%d")
-            dias_desde_inicio = max(0, (datetime.now() - fecha_obj).days)
-        except Exception:
-            dias_desde_inicio = 180
+        fecha_evento = datetime.strptime(payload.fecha_evento, "%Y-%m-%d")
+        # 1. Borde de vigencia (usa fecha_inicio_poliza si viene del form)
+        if payload.fecha_inicio_poliza:
+            try:
+                fi = datetime.strptime(payload.fecha_inicio_poliza, "%Y-%m-%d")
+                dias_desde_inicio = max(0, (fecha_evento - fi).days)
+            except Exception:
+                dias_desde_inicio = max(0, (datetime.now() - fecha_evento).days)
+        else:
+            dias_desde_inicio = max(0, (datetime.now() - fecha_evento).days)
 
-        row = {
-            "ramo": payload.ramo or "missing",
-            "monto_reclamado": payload.monto_reclamado,
-            "id_proveedor": payload.id_proveedor or "missing",
-            "dias_desde_inicio_poliza": dias_desde_inicio,
-            "similitud_narrativa_max": 0.0,
-            "reclamos_previos_asegurado": 0,
-            "lista_restrictiva": 1 if payload.id_proveedor and payload.id_proveedor.strip().upper() in ["TALLER-001", "TALLER-003", "PROV-022"] else 0,
-            "docs_completos": 1,
-            "dias_ocurrencia_reporte": 0,
-            "cobertura": "missing",
-            "sucursal": "missing",
-            "placa_vehiculo_asegurado": payload.placa or "missing",
-        }
-
-        feature_names = MODEL_REGISTRY.get("feature_names", [])
-        for col in feature_names:
-            if col not in row:
-                row[col] = 0
-
-        df = pd.DataFrame([row])
-        X_transformed = MODEL_PREPROCESSOR.transform(df)
-        proba = MODEL_RF.predict_proba(X_transformed)[:, 1][0]
-        final_score = min(100, int(proba * 100))
-        level = "Alto" if final_score >= 75 else "Medio" if final_score >= 40 else "Bajo"
-
-        importances = MODEL_RF.feature_importances_
-        all_feature_names = MODEL_REGISTRY.get("feature_names", [])
-        sorted_idx = np.argsort(importances)[::-1]
-        alerts = []
-        for idx in sorted_idx[:10]:
-            if len(alerts) >= 5:
-                break
-            fname = all_feature_names[idx] if idx < len(all_feature_names) else f"feature_{idx}"
-            if importances[idx] > 0.03:
-                human = FEATURE_HUMAN_MAP.get(fname, fname)
-                alerts.append(human)
-
-        return {
-            "score": f"{final_score}%",
-            "level": level,
-            "alerts": alerts if alerts else ["Frecuencia de reclamos atípicos", "Verificar historial del proveedor"],
-            "model": "random_forest"
-        }
-    except Exception as e:
-        print(f"Error en ML calculator endpoint: {e}")
-        return calculate_risk_fallback(payload)
-
-def calculate_risk_fallback(payload: ClaimCalculatorInput):
-    score = 15
-    alerts = []
-    if payload.ramo.strip().lower() in ["vehículo", "vehiculos", "vehiculo"]:
-        score += 5
-    if payload.monto_reclamado > 25000:
-        score += 15
-        alerts.append("Monto reclamado elevado")
-    elif payload.monto_reclamado > 10000:
-        score += 8
-        alerts.append("Monto moderado reclamado")
-    if payload.id_proveedor and payload.id_proveedor.strip().upper() in ["TALLER-001", "TALLER-003", "PROV-022"]:
-        score += 25
-        alerts.append("Proveedor en lista restrictiva")
-    try:
-        fecha_obj = datetime.strptime(payload.fecha_evento, "%Y-%m-%d")
-        dias = (datetime.now() - fecha_obj).days
-        if dias < 30:
-            score += 20
-            alerts.append("Siniestro cercano al inicio de vigencia")
+        # 2. Demora en reporte
+        if payload.fecha_reporte:
+            try:
+                fr = datetime.strptime(payload.fecha_reporte, "%Y-%m-%d")
+                dias_reporte = max(0, (fr - fecha_evento).days)
+            except Exception:
+                dias_reporte = 0
     except Exception:
         pass
-    final_score = min(100, score)
+
+    row_dict["dias_desde_inicio_poliza"] = dias_desde_inicio
+    row_dict["dias_ocurrencia_reporte"] = dias_reporte
+
+    # === Score híbrido (Reglas Hackathon + ML + NLP) ===
+    if MODEL_RF is None or MODEL_PREPROCESSOR is None or MODEL_REGISTRY is None:
+        final_score = compute_composite_score(
+            similitud=row_dict.get("similitud_narrativa_max", 0.0),
+            docs_completos=row_dict.get("docs_completos", "Si"),
+            prov_lista_restrictiva=row_dict.get("prov_lista_restrictiva", "No"),
+            dias_desde_inicio=dias_desde_inicio,
+            dias_ocurrencia_reporte=dias_reporte,
+            reclamos_previos=int(row_dict.get("reclamos_previos_asegurado", 0)),
+            monto_reclamado=row_dict.get("monto_reclamado", 0.0),
+            suma_asegurada=row_dict.get("suma_asegurada", 0.0),
+        )
+        model_used = "rules_hackathon"
+    else:
+        try:
+            # Enriquecer para el modelo
+            row_for_ml = {
+                **row_dict,
+                "dias_desde_inicio_poliza": dias_desde_inicio,
+                "dias_ocurrencia_reporte": dias_reporte,
+                "reclamos_previos_asegurado": row_dict["reclamos_previos_asegurado"],
+                "lista_restrictiva": 1 if row_dict["prov_lista_restrictiva"] == "Si" else 0,
+                "docs_completos": 1 if row_dict["docs_completos"] in ("Si", "Sí") else 0,
+                "placa_vehiculo_asegurado": row_dict["placa_vehiculo_asegurado"],
+            }
+            feature_names = MODEL_REGISTRY.get("feature_names", [])
+            for col in feature_names:
+                if col not in row_for_ml:
+                    row_for_ml[col] = 0
+
+            df = pd.DataFrame([row_for_ml])
+            X_transformed = MODEL_PREPROCESSOR.transform(df)
+            proba = MODEL_RF.predict_proba(X_transformed)[:, 1][0]
+            ml_score = int(proba * 100)
+
+            rules_score = compute_composite_score(
+                similitud=row_dict.get("similitud_narrativa_max", 0.0),
+                docs_completos=row_dict.get("docs_completos", "Si"),
+                prov_lista_restrictiva=row_dict.get("prov_lista_restrictiva", "No"),
+                dias_desde_inicio=dias_desde_inicio,
+                dias_ocurrencia_reporte=dias_reporte,
+                reclamos_previos=int(row_dict.get("reclamos_previos_asegurado", 0)),
+                monto_reclamado=row_dict.get("monto_reclamado", 0.0),
+                suma_asegurada=row_dict.get("suma_asegurada", 0.0),
+            )
+            # Fusión 55% reglas (más explicable para Hackathon) + 45% ML
+            final_score = min(100, int(0.55 * rules_score + 0.45 * ml_score))
+            model_used = "random_forest_fused"
+        except Exception as e:
+            print(f"ML fallback en calculator: {e}")
+            final_score = compute_composite_score(
+                similitud=row_dict.get("similitud_narrativa_max", 0.0),
+                docs_completos=row_dict.get("docs_completos", "Si"),
+                prov_lista_restrictiva=row_dict.get("prov_lista_restrictiva", "No"),
+                dias_desde_inicio=dias_desde_inicio,
+                dias_ocurrencia_reporte=dias_reporte,
+                reclamos_previos=int(row_dict.get("reclamos_previos_asegurado", 0)),
+                monto_reclamado=row_dict.get("monto_reclamado", 0.0),
+                suma_asegurada=row_dict.get("suma_asegurada", 0.0),
+            )
+            model_used = "rules_hackathon"
+
     level = "Alto" if final_score >= 75 else "Medio" if final_score >= 40 else "Bajo"
+
+    # === Alertas explicables alineadas al problema del Hackathon (por ramo) ===
+    alerts = []
+    ramo_lower = (payload.ramo or "").lower()
+
+    # Señales comunes
+    if dias_desde_inicio <= 10:
+        alerts.append("Siniestro extremo al borde de vigencia (<10 días)")
+    elif dias_desde_inicio <= 30:
+        alerts.append("Siniestro cercano al inicio de vigencia (≤30 días)")
+
+    if dias_reporte > 7:
+        alerts.append("Reporte muy tardío (>7 días)")
+    elif dias_reporte > 3:
+        alerts.append("Demora atípica en reporte (3-7 días)")
+
+    if row_dict.get("prov_lista_restrictiva") == "Si":
+        prov_type = "Clínica" if "salud" in ramo_lower else "Taller/Proveedor"
+        alerts.append(f"{prov_type} en lista restrictiva")
+
+    if row_dict.get("docs_completos") == "No":
+        alerts.append("Documentos incompletos o con inconsistencias")
+
+    if int(row_dict.get("reclamos_previos_asegurado", 0)) >= 3:
+        alerts.append("Alta frecuencia de reclamos previos del asegurado (≥3)")
+
+    try:
+        if row_dict.get("suma_asegurada", 0) > 0:
+            ratio = float(row_dict.get("monto_reclamado", 0)) / float(row_dict.get("suma_asegurada", 1))
+            if ratio > 0.92:
+                alerts.append("Monto cercano o superior al 92% de la suma asegurada")
+    except Exception:
+        pass
+
+    # Alertas específicas por ramo (Salud ya no usa lógica de vehículos)
+    if "salud" in ramo_lower:
+        if row_dict.get("id_proveedor") and "HOSP" in str(row_dict.get("id_proveedor", "")).upper():
+            if "Clínica" not in str(alerts):
+                alerts.append("Proveedor médico recurrente en casos observados")
+        if not alerts:
+            alerts.append("Verificar historial clínico y documentación médica")
+    elif "hogar" in ramo_lower:
+        if not alerts:
+            alerts.append("Evaluar inconsistencias en daños reportados del predio")
+    else:
+        # Vehículos
+        if payload.placa and not any("placa" in a.lower() or "vehículo" in a.lower() for a in alerts):
+            alerts.append("Verificar historial del vehículo (placa)")
+
+    if not alerts:
+        alerts = ["Patrón de reclamo dentro de rangos normales", "Sin señales fuertes de riesgo según reglas Hackathon"]
+
+    # Limitar a 5 alertas más relevantes
+    alerts = alerts[:5]
+
     return {
         "score": f"{final_score}%",
         "level": level,
-        "alerts": alerts if alerts else ["Verificar antecedentes del vehículo"],
-        "model": "rules_fallback"
+        "alerts": alerts,
+        "model": model_used
+    }
+
+
+def calculate_risk_fallback(payload: ClaimCalculatorInput):
+    """Fallback robusto cuando no hay modelos ML - usa 100% reglas del Hackathon."""
+    # Calcular días derivados (misma lógica que arriba)
+    dias_desde_inicio = 180
+    dias_reporte = 0
+    try:
+        fecha_evento = datetime.strptime(payload.fecha_evento, "%Y-%m-%d")
+        if payload.fecha_inicio_poliza:
+            fi = datetime.strptime(payload.fecha_inicio_poliza, "%Y-%m-%d")
+            dias_desde_inicio = max(0, (fecha_evento - fi).days)
+        else:
+            dias_desde_inicio = max(0, (datetime.now() - fecha_evento).days)
+
+        if payload.fecha_reporte:
+            fr = datetime.strptime(payload.fecha_reporte, "%Y-%m-%d")
+            dias_reporte = max(0, (fr - fecha_evento).days)
+    except Exception:
+        pass
+
+    docs = payload.docs_completos or "Si"
+    prov = payload.id_proveedor or ""
+    reclamos = int(payload.reclamos_previos or 0)
+    suma = float(payload.suma_asegurada or 0)
+    monto = float(payload.monto_reclamado or 0)
+
+    # Usar la función oficial del proyecto (señales completas del problema)
+    final_score = compute_composite_score(
+        similitud=float(payload.similitud_narrativa_max or 0.0),
+        docs_completos=docs,
+        prov_lista_restrictiva="Si" if prov.strip().upper() in ["TALLER-001", "TALLER-003", "PROV-022", "HOSP-002", "CLINICA-015"] else "No",
+        dias_desde_inicio=dias_desde_inicio,
+        dias_ocurrencia_reporte=dias_reporte,
+        reclamos_previos=reclamos,
+        monto_reclamado=monto,
+        suma_asegurada=suma,
+    )
+
+    # Bonus leve por ramo (solo para no romper casos edge)
+    ramo_l = (payload.ramo or "").lower()
+    if "vehículo" in ramo_l or "vehiculos" in ramo_l:
+        final_score = min(100, final_score + 3)
+
+    level = "Alto" if final_score >= 75 else "Medio" if final_score >= 40 else "Bajo"
+
+    # Alertas específicas y correctas por ramo
+    alerts = []
+    if dias_desde_inicio <= 10:
+        alerts.append("Siniestro extremo al borde de vigencia (<10 días)")
+    elif 11 <= dias_desde_inicio <= 30:
+        alerts.append("Siniestro cercano al inicio de vigencia (11-30 días)")
+
+    if dias_reporte > 2:
+        alerts.append("Demora en reporte del siniestro")
+
+    if docs == "No":
+        alerts.append("Documentos incompletos o faltantes")
+
+    if prov.strip().upper() in ["TALLER-001", "TALLER-003", "PROV-022", "HOSP-002", "CLINICA-015"]:
+        alerts.append("Proveedor / Clínica en lista restrictiva")
+
+    if reclamos >= 3:
+        alerts.append("Frecuencia alta de reclamos del asegurado (≥3 en 12m)")
+
+    if suma > 0 and monto / suma > 0.92:
+        alerts.append("Monto muy alto respecto a suma asegurada")
+
+    if "salud" in ramo_l and not alerts:
+        alerts.append("Revisar documentación médica y proveedor de salud")
+    if "hogar" in ramo_l and not alerts:
+        alerts.append("Evaluar daños reportados vs evidencia del predio")
+    if not alerts:
+        alerts = ["Sin señales fuertes de fraude según reglas del Hackathon"]
+
+    return {
+        "score": f"{final_score}%",
+        "level": level,
+        "alerts": alerts[:5],
+        "model": "rules_hackathon_fallback"
     }
 
 @app.post("/api/narratives/compare", tags=["NLP Processing"], summary="Análisis cognitivo NLP de similitud de narrativas")
@@ -1493,6 +1688,151 @@ Como recomendación forense inmediata para la Unidad Antifraude, se sugiere **co
 def submit_feedback(case_id: str, feedback: CaseFeedback):
     print(f"[fraudIA] Accion de auditoria para {case_id}: {feedback.action} - Notas: {feedback.notes}")
     return {"status": "success", "message": "Acción forense registrada de forma exitosa en el expediente corporativo."}
+
+# ── CRUD para "Agregar Datos" con validación relacional (Hackathon requirement) ─
+@app.post("/api/asegurados", tags=["Entidades"], summary="Crear nuevo asegurado (validado)")
+def create_asegurado(payload: AseguradoCreate):
+    try:
+        engine = get_db_engine()
+        with engine.begin() as conn:
+            # Check duplicate
+            exists = conn.execute(text("SELECT 1 FROM asegurados WHERE id_asegurado = :id"), {"id": payload.id_asegurado}).fetchone()
+            if exists:
+                raise HTTPException(status_code=409, detail="Ya existe un asegurado con ese ID")
+
+            conn.execute(text("""
+                INSERT INTO asegurados (id_asegurado, nombres_asegurado, segmento, ciudad, antiguedad_asegurado,
+                                        n_polizas_activas, reclamos_ult_12m, reclamos_historico_total,
+                                        reclamos_rc_sin_tercero, perfil_riesgo_historico)
+                VALUES (:id, :nombre, :seg, :ciudad, :ant, :npol, :rec12, :rechist, 0, :perfil)
+            """), {
+                "id": payload.id_asegurado,
+                "nombre": payload.nombres_asegurado,
+                "seg": payload.segmento,
+                "ciudad": payload.ciudad,
+                "ant": payload.antiguedad_asegurado,
+                "npol": payload.n_polizas_activas,
+                "rec12": payload.reclamos_ult_12m,
+                "rechist": payload.reclamos_ult_12m,
+                "perfil": payload.perfil_riesgo_historico
+            })
+        return {"success": True, "message": f"Asegurado {payload.id_asegurado} creado correctamente", "id": payload.id_asegurado}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creando asegurado: {str(e)}")
+
+@app.post("/api/proveedores", tags=["Entidades"], summary="Crear nuevo proveedor/taller/clínica (validado)")
+def create_proveedor(payload: ProveedorCreate):
+    try:
+        engine = get_db_engine()
+        with engine.begin() as conn:
+            exists = conn.execute(text("SELECT 1 FROM proveedores WHERE id_proveedor = :id"), {"id": payload.id_proveedor}).fetchone()
+            if exists:
+                raise HTTPException(status_code=409, detail="Ya existe un proveedor con ese ID")
+
+            conn.execute(text("""
+                INSERT INTO proveedores (id_proveedor, nombre_proveedor, tipo_proveedor, ciudad_proveedor,
+                                          siniestros_asociados, lista_restrictiva, motivo_restriccion, promedio_monto)
+                VALUES (:id, :nombre, :tipo, :ciudad, 0, :lista, :motivo, 0)
+            """), {
+                "id": payload.id_proveedor,
+                "nombre": payload.nombre_proveedor,
+                "tipo": payload.tipo_proveedor,
+                "ciudad": payload.ciudad_proveedor,
+                "lista": payload.lista_restrictiva,
+                "motivo": payload.motivo_restriccion
+            })
+        return {"success": True, "message": f"Proveedor {payload.id_proveedor} creado", "id": payload.id_proveedor}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creando proveedor: {str(e)}")
+
+@app.post("/api/siniestros", tags=["Siniestros"], summary="Registrar nuevo siniestro con integridad referencial completa")
+def create_siniestro(payload: SiniestroCreate):
+    try:
+        engine = get_db_engine()
+        with engine.begin() as conn:
+            # Validate FKs exist
+            aseg = conn.execute(text("SELECT 1 FROM asegurados WHERE id_asegurado = :id"), {"id": payload.id_asegurado}).fetchone()
+            if not aseg:
+                raise HTTPException(status_code=422, detail="El id_asegurado no existe. Primero cree el asegurado.")
+
+            pol = conn.execute(text("SELECT 1 FROM polizas WHERE id_poliza = :id"), {"id": payload.id_poliza}).fetchone()
+            if not pol:
+                # Auto-create a minimal policy for demo convenience (common in prototypes)
+                conn.execute(text("""
+                    INSERT INTO polizas (id_poliza, id_asegurado, ramo_poliza, fecha_inicio, fecha_fin,
+                                         suma_asegurada, prima_anual, canal_venta, estado_poliza)
+                    VALUES (:pid, :aid, :ramo, CURRENT_DATE - INTERVAL '120 days', CURRENT_DATE + INTERVAL '245 days',
+                            25000, 850, 'Digital', 'Vigente')
+                """), {"pid": payload.id_poliza, "aid": payload.id_asegurado, "ramo": payload.ramo})
+
+            if payload.id_proveedor:
+                prov = conn.execute(text("SELECT 1 FROM proveedores WHERE id_proveedor = :id"), {"id": payload.id_proveedor}).fetchone()
+                if not prov:
+                    raise HTTPException(status_code=422, detail="El id_proveedor no existe. Créelo primero o déjelo vacío.")
+
+            # Compute derived fields
+            try:
+                fo = datetime.strptime(payload.fecha_ocurrencia, "%Y-%m-%d")
+                fr = datetime.strptime(payload.fecha_reporte, "%Y-%m-%d")
+                dias_rep = max(0, (fr - fo).days)
+            except Exception:
+                dias_rep = 0
+
+            conn.execute(text("""
+                INSERT INTO siniestros (
+                    id_siniestro, id_poliza, id_asegurado, ramo, placa_vehiculo_asegurado, cobertura,
+                    fecha_ocurrencia, fecha_reporte, dias_ocurrencia_reporte, monto_reclamado,
+                    monto_estimado, monto_pagado, estado, sucursal, id_proveedor,
+                    descripcion_evento, docs_completos, prov_lista_restrictiva,
+                    dias_desde_inicio_poliza, dias_hasta_fin_poliza, reclamos_previos_asegurado,
+                    suma_asegurada, similitud_narrativa_max
+                ) VALUES (
+                    :sid, :pid, :aid, :ramo, :placa, :cob,
+                    :foc, :fre, :diasr, :monto,
+                    :monto * 0.95, :monto * 0.88, 'En Reserva', :suc, :prov,
+                    :desc, :docs, 'No',
+                    45, 280, 0,
+                    25000, 0.12
+                )
+            """), {
+                "sid": payload.id_siniestro,
+                "pid": payload.id_poliza,
+                "aid": payload.id_asegurado,
+                "ramo": payload.ramo,
+                "placa": payload.placa_vehiculo_asegurado or "N/A",
+                "cob": payload.cobertura,
+                "foc": payload.fecha_ocurrencia,
+                "fre": payload.fecha_reporte,
+                "diasr": dias_rep,
+                "monto": payload.monto_reclamado,
+                "suc": payload.sucursal,
+                "prov": payload.id_proveedor,
+                "desc": payload.descripcion_evento,
+                "docs": payload.docs_completos
+            })
+
+            # Update counters on related tables (keeps UI in sync)
+            conn.execute(text("""
+                UPDATE asegurados SET reclamos_ult_12m = reclamos_ult_12m + 1,
+                                     reclamos_historico_total = reclamos_historico_total + 1
+                WHERE id_asegurado = :aid
+            """), {"aid": payload.id_asegurado})
+
+            if payload.id_proveedor:
+                conn.execute(text("""
+                    UPDATE proveedores SET siniestros_asociados = siniestros_asociados + 1
+                    WHERE id_proveedor = :pid
+                """), {"pid": payload.id_proveedor})
+
+        return {"success": True, "message": f"Siniestro {payload.id_siniestro} registrado con integridad referencial", "id": payload.id_siniestro}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error registrando siniestro: {str(e)}")
 
 # ── Gemini Context Formatting Helpers ─────────────────────────────────────────
 

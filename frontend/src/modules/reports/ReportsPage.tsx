@@ -7,6 +7,8 @@ import {
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { MarkdownRenderer } from '../../shared/ui/MarkdownRenderer'
 import { API_BASE_URL } from '../../config/api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import './ReportsPage.css'
 
 export function ReportsPage() {
@@ -22,6 +24,8 @@ export function ReportsPage() {
   const [riskLevel, setRiskLevel] = useState('Solo Críticos')
   const [city, setCity] = useState('Nacional (Global)')
   const [loading, setLoading] = useState(false)
+  const [reportError, setReportError] = useState<string | null>(null)
+  const [lastFilters, setLastFilters] = useState<any>(null) // remember what was used for PDF
   const [aiSummary, setAiSummary] = useState(
     '### Resumen Analítico IA\n' +
     'La IA identificó un incremento del **18%** en patrones de narrativa similar durante los últimos 30 días, sugiriendo la actividad de una red coordinada.\n\n' +
@@ -38,8 +42,95 @@ export function ReportsPage() {
       .catch(console.error)
   }, [])
 
+  // === PROPER PDF EXPORT WITH LOGO + DATA (fixes the "print sheet" bug) ===
+  const exportToPDF = () => {
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+
+    // Header bar
+    doc.setFillColor(19, 35, 63) // #13233f dark navy
+    doc.rect(0, 0, pageWidth, 28, 'F')
+
+    // Project name + fake logo (shield + text)
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('FRAUDIA', 15, 18)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text('Detector de Fraude en Siniestros • IA', 15, 24)
+
+    // Date + filters on right
+    doc.setFontSize(9)
+    doc.text(new Date().toLocaleDateString('es-EC'), pageWidth - 15, 14, { align: 'right' })
+    doc.text('Reporte generado automáticamente', pageWidth - 15, 19, { align: 'right' })
+
+    // Title
+    doc.setTextColor(19, 35, 63)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Reporte ${reportType} — ${city}`, 15, 40)
+
+    // Filters used
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(71, 85, 105)
+    const filterText = `Periodo: ${period}  |  Nivel de Riesgo: ${riskLevel}  |  Filtros aplicados al generar`
+    doc.text(filterText, 15, 47)
+
+    // KPIs box
+    doc.setDrawColor(226, 232, 240)
+    doc.setFillColor(248, 250, 252)
+    doc.roundedRect(15, 54, pageWidth - 30, 22, 3, 3, 'FD')
+
+    doc.setTextColor(19, 35, 63)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('KPIs Clave', 20, 61)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Casos críticos: ${kpis.casos_criticos}    Alertas: ${kpis.alertas_generadas}    Monto activo: ${kpis.monto_reclamado}    Riesgo prom: ${kpis.riesgo_promedio}`, 20, 68)
+
+    // AI Summary content (cleaned)
+    doc.setTextColor(19, 35, 63)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Análisis Ejecutivo IA', 15, 84)
+
+    // Use MarkdownRenderer content but strip markdown for PDF simplicity
+    const cleanText = aiSummary
+      .replace(/###\s*/g, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/•/g, '-')
+
+    doc.setFontSize(9.5)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(30, 41, 59)
+
+    const splitSummary = doc.splitTextToSize(cleanText, pageWidth - 32)
+    doc.text(splitSummary, 15, 92, { maxWidth: pageWidth - 30 })
+
+    // Footer
+    const footerY = doc.internal.pageSize.getHeight() - 18
+    doc.setFillColor(241, 245, 249)
+    doc.rect(0, footerY - 4, pageWidth, 22, 'F')
+    doc.setTextColor(100, 116, 139)
+    doc.setFontSize(8)
+    doc.text('FRAUDIA • Prototipo HackIAthon 2026 • Este documento es un análisis de apoyo, no una acusación formal de fraude.', 15, footerY + 6)
+    doc.text('Generado con motor cognitivo de reglas + IA explicativa', pageWidth - 15, footerY + 6, { align: 'right' })
+
+    // Save
+    const filename = `Fraudia_Reporte_${reportType.replace(/\s+/g, '')}_${new Date().toISOString().slice(0,10)}.pdf`
+    doc.save(filename)
+  }
+
   const handleGenerateReport = () => {
     setLoading(true)
+    setReportError(null)
+
+    const filters = { reportType, period, riskLevel, city }
+
     fetch(API_BASE_URL + '/api/reports/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,14 +141,26 @@ export function ReportsPage() {
         city: city
       })
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Error del servidor al generar reporte')
+        return res.json()
+      })
       .then(data => {
         if (data && data.report) {
           setAiSummary(data.report)
+          setLastFilters(filters)
+          // success toast could be added here
+        } else {
+          throw new Error('Respuesta incompleta del backend')
         }
       })
       .catch(err => {
         console.error('Error generating report:', err)
+        setReportError('No se pudo generar el análisis IA. Usando datos de respaldo. Intente nuevamente.')
+        // still show a decent fallback report
+        const fallback = `### Reporte Analítico IA: ${reportType} (${city})\n\nEl análisis para el periodo '${period}' y nivel '${riskLevel}' muestra **${kpis.casos_criticos} casos críticos** con monto total de ${kpis.monto_reclamado}. Se detectaron patrones de riesgo operativo que requieren atención de la Unidad Antifraude.`
+        setAiSummary(fallback)
+        setLastFilters(filters)
       })
       .finally(() => {
         setLoading(false)
@@ -86,12 +189,12 @@ export function ReportsPage() {
                   <div className="ai-dot"></div>
                   IA Analítica Activa
                 </div>
-                <button className="rep-btn-sec" onClick={() => window.print()}>
+                <button className="rep-btn-sec" onClick={exportToPDF}>
                   <DownloadSimple size={16} weight="bold" style={{ display: 'inline', marginRight: '6px' }} />
                   Exportar PDF
                 </button>
                 <button className="rep-btn-pri" onClick={handleGenerateReport} disabled={loading}>
-                  {loading ? 'Generando...' : '+ Generar reporte'}
+                  {loading ? 'Analizando con IA...' : '+ Generar reporte'}
                 </button>
               </div>
             </header>
@@ -269,8 +372,13 @@ export function ReportsPage() {
                 </div>
 
                 <button className="gen-btn" onClick={handleGenerateReport} disabled={loading}>
-                  {loading ? 'Analizando en Base de Datos...' : 'Generar Análisis IA'}
+                  {loading ? 'Analizando en Base de Datos + IA...' : 'Generar Análisis IA'}
                 </button>
+                {reportError && (
+                  <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#c2410c', background: '#fef2f2', padding: '6px 10px', borderRadius: 6 }}>
+                    {reportError}
+                  </div>
+                )}
               </div>
 
               {/* AI Live Summary */}

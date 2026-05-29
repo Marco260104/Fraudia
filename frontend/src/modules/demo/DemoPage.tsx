@@ -392,7 +392,7 @@ export function DemoPage() {
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.9rem' }}>
                   EvalÃºa el riesgo de un nuevo siniestro con nuestro motor cognitivo y reglas de negocio.
                 </p>
-                <Link to="/calculadora" className="btn btn-primary" style={{ textDecoration: 'none', width: '100%' }}>
+                <Link to="/dashboard?tab=calculadora" className="btn btn-primary" style={{ textDecoration: 'none', width: '100%' }}>
                   Ir a la calculadora
                 </Link>
               </div>

@@ -2,15 +2,19 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Copiar dependencias e instalarlas (omitiendo package-lock.json para forzar binarios de linux)
-COPY package.json ./
-RUN npm install
+# Install dependencies first (better layer caching)
+COPY package.json package-lock.json* ./
 
-# Copiar el código fuente
+# Force clean install of native optional dependencies (critical for Vite 6+/Rolldown on Linux)
+# This fixes the common "Cannot find native binding @rolldown/binding-linux-x64-gnu" error
+RUN npm ci --no-audit --no-fund --include=optional && \
+    npm cache clean --force
+
+# Copy source code (will be overridden by volume mount in dev)
 COPY . .
 
-# Exponer el puerto por defecto de Vite
+# Expose Vite port
 EXPOSE 5173
 
-# Ejecutar Vite y forzar la escucha en la interfaz 0.0.0.0 para que sea accesible desde fuera del contenedor
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Important: force host 0.0.0.0 so it's reachable from outside the container (Windows/WSL)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]

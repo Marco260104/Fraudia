@@ -1,5 +1,3 @@
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom'
 import type { CSSProperties, ComponentType, MutableRefObject, ReactNode } from 'react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { API_BASE_URL } from '../../config/api'
@@ -9,28 +7,22 @@ import {
   ArrowRight,
   Bell,
   Buildings,
-  Calculator,
   Car,
   Crosshair,
   DownloadSimple,
   FileText,
   Fire,
   Question,
-  House,
   Stack,
   MapTrifold,
   MapPin,
   Graph,
   ArrowsClockwise,
   MagnifyingGlass,
-  Gear,
-  Shield,
   SlidersHorizontal,
-  Sparkle,
   CaretDown,
   Users,
-  Wrench,
-  ShieldCheck
+  Wrench
 } from '@phosphor-icons/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Map as LeafletMap, LeafletMouseEvent } from 'leaflet'
@@ -55,13 +47,6 @@ const LeafletCircleMarker = CircleMarker as unknown as ComponentType<RelaxedLeaf
 const LeafletPopup = Popup as unknown as ComponentType<RelaxedLeafletProps>
 const LeafletTooltipLayer = LeafletTooltip as unknown as ComponentType<RelaxedLeafletProps>
 
-type SidebarItem = {
-  label: string
-  icon: typeof House
-  href: string
-  badge?: string
-  group: 'main' | 'entities' | 'tools'
-}
 
 type SparkConfig = {
   title: string
@@ -104,21 +89,6 @@ type MapPoint = {
   title: string
   count: number
 }
-
-const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
-  { label: 'Casos crÃ­ticos', icon: Warning, href: '/casos-criticos', badge: '18', group: 'main' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
-  { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Calculator, href: '/calculadora', group: 'tools' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'ConfiguraciÃ³n', icon: Gear, href: '/configuracion', group: 'tools' },
-]
 
 const sparkData = {
   siniestros: [820, 890, 950, 870, 920, 1050, 980, 1100, 1150, 1090, 1200, 1247],
@@ -555,7 +525,6 @@ function MapMarkerTooltip({ tooltip }: { tooltip: TooltipState }) {
 }
 
 export default function MapaSiniestrosPage() {
-  const activeSidebar = useLocation().pathname
   const [mapMode, setMapMode] = useState<'map' | 'satellite'>('map')
   const [zoom, setZoom] = useState(1)
   const [loading, setLoading] = useState(false)

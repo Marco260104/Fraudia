@@ -1,31 +1,21 @@
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
-  Activity,
-  ArrowRight,
   Bell,
-  Buildings,
-  CalendarDays,
-  Car,
-  CheckCircle2,
+  Calendar,
+  CheckCircle,
   CaretDown,
-  Clock3,
-  FileText,
+  Clock,
   Fingerprint,
-  HeartPulse,
-  House,
-  Link,
+  Heartbeat,
+  Link as LinkIcon,
   MapPin,
-  Radar,
-  MagnifyingGlass,
+  Target as Radar,
   Shield,
-  Sparkle,
+  ChartLineUp,
   Target,
-  UserRound,
-  Wrench,
-  ShieldCheck
+  Sparkle,
+  MagnifyingGlass
 } from '@phosphor-icons/react'
 import {
   PolarAngleAxis,
@@ -37,44 +27,14 @@ import {
   Tooltip,
 } from 'recharts'
 
-type SidebarItem = {
-  label: string
-  icon: typeof House
-  href: string
-  badge?: string
-  group: 'main' | 'entities' | 'tools'
-}
-
 type IntelligenceBlock = {
   label: string
   value: string
-  tone: 'blue' | 'green' | 'indigo' | 'violet' | 'amber'
+  tone: 'blue' | 'green' | 'indigo' | 'violet' | 'amber' | 'red'
   icon: typeof Target
   bars: number[]
 }
 
-const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
-  { label: 'Casos crÃ­ticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
-  { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/dashboard', group: 'tools' },
-  { label: 'Reportes', icon: FileText, href: '/dashboard', group: 'tools' },
-  { label: 'ConfiguraciÃ³n', icon: Fingerprint, href: '/dashboard', group: 'tools' },
-]
-
-const intelligenceBlocks: IntelligenceBlock[] = [
-  { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue', icon: Activity, bars: [24, 40, 32, 48, 38] },
-  { label: 'Consistencia narrativa', value: '94%', tone: 'green', icon: CheckCircle2, bars: [44, 52, 54, 60, 64] },
-  { label: 'PatrÃ³n geogrÃ¡fico', value: '88%', tone: 'indigo', icon: MapPin, bars: [28, 36, 45, 50, 52] },
-  { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet', icon: Clock3, bars: [18, 30, 26, 34, 40] },
-  { label: 'Historial operativo', value: '91%', tone: 'amber', icon: Shield, bars: [42, 44, 48, 55, 58] },
-]
 
 const timeline = [
   { year: '2022', title: 'Reclamo menor validado', desc: 'Impacto leve y cierre estÃ¡ndar sin anomalÃ­as.', tone: 'green' },
@@ -183,7 +143,6 @@ interface Insured {
 }
 
 export default function AseguradosPage() {
-  const location = useLocation()
   const [search, setSearch] = useState('')
   const [activeYear] = useState('2025')
 
@@ -225,10 +184,10 @@ export default function AseguradosPage() {
 
   const intelligenceBlocks = useMemo(() => {
     if (!activeInsured) return [
-      { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue' as const, icon: Activity, bars: [24, 40, 32, 48, 38] },
-      { label: 'Consistencia narrativa', value: '94%', tone: 'green' as const, icon: CheckCircle2, bars: [44, 52, 54, 60, 64] },
+      { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue' as const, icon: ChartLineUp, bars: [24, 40, 32, 48, 38] },
+      { label: 'Consistencia narrativa', value: '94%', tone: 'green' as const, icon: CheckCircle, bars: [44, 52, 54, 60, 64] },
       { label: 'PatrÃ³n geogrÃ¡fico', value: '88%', tone: 'indigo' as const, icon: MapPin, bars: [28, 36, 45, 50, 52] },
-      { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet' as const, icon: Clock3, bars: [18, 30, 26, 34, 40] },
+      { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet' as const, icon: Clock, bars: [18, 30, 26, 34, 40] },
       { label: 'Historial operativo', value: '91%', tone: 'amber' as const, icon: Shield, bars: [42, 44, 48, 55, 58] },
     ]
 
@@ -237,10 +196,10 @@ export default function AseguradosPage() {
     const risk = activeInsured.nivel_riesgo
     
     return [
-      { label: 'Reclamos 12m', value: `${activeInsured.reclamos_ult_12m}`, tone: (risk === 'alto' ? 'red' : 'blue') as 'red' | 'blue', icon: Activity, bars: [10, 20, 30, 45, freqVal] },
-      { label: 'Consistencia narrativa', value: risk === 'alto' ? '68%' : '94%', tone: (risk === 'alto' ? 'amber' : 'green') as 'amber' | 'green', icon: CheckCircle2, bars: [80, 85, 90, 92, risk === 'alto' ? 68 : 94] },
+      { label: 'Reclamos 12m', value: `${activeInsured.reclamos_ult_12m}`, tone: (risk === 'alto' ? 'red' : 'blue') as 'red' | 'blue', icon: ChartLineUp, bars: [10, 20, 30, 45, freqVal] },
+      { label: 'Consistencia narrativa', value: risk === 'alto' ? '68%' : '94%', tone: (risk === 'alto' ? 'amber' : 'green') as 'amber' | 'green', icon: CheckCircle, bars: [80, 85, 90, 92, risk === 'alto' ? 68 : 94] },
       { label: 'Siniestros Activos', value: `${activeInsured.total_siniestros_activos}`, tone: (activeInsured.total_siniestros_activos > 1 ? 'red' : 'indigo') as 'red' | 'indigo', icon: MapPin, bars: [5, 10, 15, 20, activeInsured.total_siniestros_activos * 30] },
-      { label: 'Reclamos HistÃ³ricos', value: `${activeInsured.reclamos_historico_total}`, tone: 'violet' as const, icon: Clock3, bars: [20, 30, 40, 50, histVal] },
+      { label: 'Reclamos HistÃ³ricos', value: `${activeInsured.reclamos_historico_total}`, tone: 'violet' as const, icon: Clock, bars: [20, 30, 40, 50, histVal] },
       { label: 'Perfil de riesgo', value: activeInsured.perfil_riesgo_historico, tone: (risk === 'alto' ? 'red' : risk === 'medio' ? 'amber' : 'green') as 'red' | 'amber' | 'green', icon: Shield, bars: [30, 40, 50, 60, risk === 'alto' ? 90 : risk === 'medio' ? 60 : 25] },
     ]
   }, [activeInsured])
@@ -1351,7 +1310,7 @@ export default function AseguradosPage() {
                 <span className="bell-badge">4</span>
               </button>
               <button className="icon-chip" type="button" aria-label="Ayuda">
-                <HeartPulse size={18} />
+                <Heartbeat size={18} />
               </button>
               <div className="divider" />
               <div className="profile">
@@ -1439,7 +1398,7 @@ export default function AseguradosPage() {
 
                     <div className="profile-meta">
                       <span className="meta-chip"><span className="dot" /> Monitoreo continuo</span>
-                      <span className="meta-chip"><CalendarDays size={14} /> Cliente premium</span>
+                      <span className="meta-chip"><Calendar size={14} /> Cliente premium</span>
                       <span className="meta-chip"><Fingerprint size={14} /> Identidad verificada</span>
                     </div>
                   </div>
@@ -1493,7 +1452,7 @@ export default function AseguradosPage() {
                           <h4>{item.title}</h4>
                           <p>{item.desc}</p>
                           <div className="timeline-meta">
-                            <Clock3 size={14} />
+                            <Clock size={14} />
                             Actualizado por IA
                           </div>
                         </div>
@@ -1542,7 +1501,7 @@ export default function AseguradosPage() {
                         <h3>Relaciones</h3>
                         <p>Entorno relacionado y puntos de contacto</p>
                       </div>
-                      <Link size={16} color="#6366f1" />
+                      <LinkIcon size={16} color="#6366f1" />
                     </div>
 
                     <div className="relations-grid">
@@ -1572,7 +1531,7 @@ export default function AseguradosPage() {
                         <h3>Actividad IA en vivo</h3>
                         <p>Eventos de confianza procesados en tiempo real</p>
                       </div>
-                      <Activity size={16} color="#10b981" />
+                      <ChartLineUp size={16} color="#10b981" />
                     </div>
 
                     <div className="activity-feed">

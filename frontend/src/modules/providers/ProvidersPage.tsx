@@ -1,10 +1,9 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts'
 import {
-  Bell, Building, MagnifyingGlass, ShieldCheck,
+  Bell, Building, MagnifyingGlass,
   UserCircle
 } from '@phosphor-icons/react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'

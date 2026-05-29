@@ -1,49 +1,21 @@
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
-  ArrowRight,
   Bell,
-  Buildings,
-  CalendarDays,
+  Calendar,
   Car,
-  CheckCircle2,
+  CheckCircle,
   CaretDown,
-  FileText,
-  Fingerprint,
   Gauge,
-  HeartPulse,
-  House,
-  MapPin,
+  Heartbeat,
   MagnifyingGlass,
-  Shield,
-  Sparkle,
-  Target,
   TrendUp,
-  UserRound,
+  User,
   Users,
   Wrench,
-  ShieldCheck
 } from '@phosphor-icons/react'
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts'
 
-type SidebarItem = { label: string; icon: typeof House; href: string; badge?: string; group: 'main' | 'entities' | 'tools' }
-
-const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
-  { label: 'Casos crÃ­ticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
-  { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/dashboard', group: 'tools' },
-  { label: 'Reportes', icon: FileText, href: '/dashboard', group: 'tools' },
-  { label: 'ConfiguraciÃ³n', icon: Fingerprint, href: '/dashboard', group: 'tools' },
-]
 
 const kpis = [
   { title: 'Talleres analizados', value: '428', delta: 'â†‘ 14% vs ayer', tone: 'blue', icon: Wrench },
@@ -75,7 +47,6 @@ const activity = [
 ]
 
 export default function TalleresPage() {
-  const location = useLocation()
   const [selected, setSelected] = useState(workshopData[0])
 
   const operationalNotes = useMemo(
@@ -157,7 +128,7 @@ export default function TalleresPage() {
             <div className="search"><MagnifyingGlass className="i" size={16} /><input placeholder="Buscar taller, ciudad, proveedor..." /><span className="k">âŒ˜ K</span></div>
             <div className="top-right">
               <button className="chip" type="button"><Bell size={18} /><span className="badge-dot">3</span></button>
-              <button className="chip" type="button"><HeartPulse size={18} /></button>
+              <button className="chip" type="button"><Heartbeat size={18} /></button>
               <div style={{ width: 1, height: 28, background: 'var(--border)' }} />
               <div className="profile"><div><strong>Analista Senior</strong><span>Unidad Antifraude</span></div><div className="avatar">AS<span className="dot" /></div></div>
             </div>
@@ -170,7 +141,7 @@ export default function TalleresPage() {
             <section className="hero">
               <div className="hero-main card">
                 <div className="avatar-shell"><div className="orb a" /><div className="orb b" /><div className="glass"><div className="init">TX</div></div></div>
-                <div className="hero-copy"><span className="rt"><CheckCircle2 size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias tÃ©cnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><CalendarDays size={14} />Operativo desde 2019</span><span><Car size={14} />24 vehÃ­culos vinculados</span><span><UserRound size={14} />31 asegurados recurrentes</span></div></div>
+                <div className="hero-copy"><span className="rt"><CheckCircle size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias tÃ©cnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><Calendar size={14} />Operativo desde 2019</span><span><Car size={14} />24 vehÃ­culos vinculados</span><span><User size={14} />31 asegurados recurrentes</span></div></div>
               </div>
               <div className="trust"><div className="label">Operational trust</div><div className="score"><div className="n">91</div><div className="bar"><span style={{ height: '91%' }} /></div></div><div className="tag">RIESGO CONTENIDO</div><p>PatrÃ³n estable con picos de revisiÃ³n en ventanas cortas.</p></div>
             </section>

@@ -1,22 +1,13 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import type { CSSProperties } from 'react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { API_BASE_URL } from '../../config/api'
-import type { CSSProperties } from 'react'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import {
   MagnifyingGlass, Bell, Question, Funnel, SlidersHorizontal, Eye, Link as LinkIcon, ClipboardText, FileText, ArrowRight, CaretDown, ChatTeardropText, Stack, Graph, Target, WarningCircle, Sparkle
 } from '@phosphor-icons/react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
-
-type SidebarItem = {
-  label: string
-  icon: typeof House
-  href: string
-  badge?: string
-  group: 'main' | 'entities' | 'tools'
-}
 
 type SparkConfig = {
   title: string
@@ -30,7 +21,7 @@ type SparkConfig = {
 type NarrativeRow = {
   id: string
   similarity: string
-  severity: 'CRÃTICO' | 'ALTO' | 'MEDIO'
+  severity: 'CRÍTICO' | 'ALTO' | 'MEDIO'
   excerpt: string
   insured: string
   date: string
@@ -39,21 +30,6 @@ type NarrativeRow = {
   provider: string
   city: string
 }
-
-const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
-  { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
-  { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
-]
 
 const kpiData = [
   [1240, 1255, 1268, 1261, 1272, 1280, 1278, 1295, 1312, 1308, 1320, 1327],
@@ -77,7 +53,7 @@ const narratives: NarrativeRow[] = [
   {
     id: '#FR-87291',
     similarity: '96%',
-    severity: 'CRÃTICO',
+    severity: 'CRÍTICO',
     excerpt: 'El vehÃ­culo se encontraba estacionado y fue impactado por alcance en la parte trasera por otro automÃ³vil...',
     insured: 'Carlos MÃ©ndez',
     date: '28/05/2025',
@@ -199,7 +175,6 @@ function SparkCard({ config, data }: { config: SparkConfig; data: number[] }) {
 }
 
 export default function NarrativasSimilaresPage() {
-  const location = useLocation()
   const [search, setSearch] = useState('')
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Alta similitud')
   const [selectedId, setSelectedId] = useState('#FR-87291')
@@ -251,7 +226,7 @@ export default function NarrativasSimilaresPage() {
           : activeTab === 'Alta similitud'
             ? Number(item.similarity.replace('%', '')) >= 88
             : activeTab === 'Patrones detectados'
-              ? ['CRÃTICO', 'ALTO'].includes(item.severity)
+              ? ['CRÍTICO', 'ALTO'].includes(item.severity)
               : true
 
       return matchesQuery && matchesTab
@@ -801,7 +776,7 @@ export default function NarrativasSimilaresPage() {
                           </div>
                           <div className="mini-actions">
                             <button className="mini-action" type="button" aria-label="Ver detalle"><Eye size={15} /></button>
-                            <button className="mini-action" type="button" aria-label="Vincular"><Link size={15} /></button>
+                            <button className="mini-action" type="button" aria-label="Vincular"><LinkIcon size={15} /></button>
                             <button className="mini-action" type="button" aria-label="Documento"><ClipboardText size={15} /></button>
                           </div>
                         </div>

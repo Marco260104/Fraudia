@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import {
-  Bell, CirclesThree, House, MapTrifold, ShieldCheck,
-  Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
+  UsersThree, WarningCircle, FileText,
   Brain, ArrowRight, ArrowUpRight, ArrowDownRight, Target,
-  DownloadSimple, Lightning, Lightbulb, ChartLineUp, SlidersHorizontal
+  DownloadSimple, Lightning, Lightbulb
 } from '@phosphor-icons/react'
-import { Link } from 'react-router-dom'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { API_BASE_URL } from '../../config/api'
 import './ReportsPage.css'

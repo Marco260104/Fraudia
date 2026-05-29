@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
   Bell,
-  CaretDown,
   MagnifyingGlass,
   Question,
   UserCircle,
-  Brain,
-  ChartLineUp,
-  Target,
   CheckCircle,
   XCircle,
   WarningDiamond

@@ -1,42 +1,23 @@
-import { ShieldCheck } from '@phosphor-icons/react'
-import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
   ArrowRight,
+  ArrowUpRight,
   Bell,
-  Buildings,
   Car,
+  Clock,
   DownloadSimple,
   Funnel,
-  Question,
-  House,
-  MapTrifold,
+  GridFour,
+  Hash,
   MagnifyingGlass,
-  Shield,
-  WarningCircle,
-  SlidersHorizontal,
-  Sparkle,
-  Target,
-  Users,
-  Wrench,
-  FileText,
+  Question,
   Warning,
-  Clock,
-  Grid,
-  XCircle,
-  FileDigit,
-  ArrowUpRight
+  WarningCircle,
+  Wrench,
+  XCircle
 } from '@phosphor-icons/react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts'
-
-type SidebarItem = {
-  label: string
-  icon: typeof House
-  href: string
-  badge?: string
-  group: 'main' | 'entities' | 'tools'
-}
 
 type SparkConfig = {
   title: string
@@ -47,20 +28,6 @@ type SparkConfig = {
   tone: string
 }
 
-const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: House, href: '/dashboard', group: 'main' },
-  { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
-  { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'VehÃ­culos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion', group: 'tools' },
-]
 
 const kpiDataVehicles = [
   [3000, 3100, 3200, 3400, 3600, 3700, 3841], 
@@ -73,7 +40,7 @@ const sparkConfigsVehicles: SparkConfig[] = [
   { title: 'VehÃ­culos analizados', value: '3,841', subtitle: 'â†‘ 17% vs ayer', stroke: '#2563eb', icon: Car, tone: 'blue' },
   { title: 'Alto riesgo', value: '247', subtitle: 'â†‘ 31% vs ayer', stroke: '#dc2626', icon: Warning, tone: 'red' },
   { title: 'Placas duplicadas', value: '38', subtitle: 'â†‘ 9% vs ayer', stroke: '#ea580c', icon: Clock, tone: 'orange' },
-  { title: 'VINs irregulares', value: '14', subtitle: 'â†’ 0% vs ayer', stroke: '#7c3aed', icon: Grid, tone: 'violet' },
+  { title: 'VINs irregulares', value: '14', subtitle: 'â†’ 0% vs ayer', stroke: '#7c3aed', icon: GridFour, tone: 'violet' },
 ]
 
 const vehiclesData = [
@@ -156,11 +123,8 @@ interface Vehicle {
 }
 
 export default function VehiclesPage() {
-  const location = useLocation()
   const [search, setSearch] = useState('')
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [selectedPlaca, setSelectedPlaca] = useState('')
 
   useEffect(() => {
@@ -191,12 +155,9 @@ export default function VehiclesPage() {
           setVehicles(fallback)
           setSelectedPlaca(fallback[0].placa)
         }
-        setLoading(false)
       })
       .catch(err => {
         console.error('Error cargando vehÃ­culos:', err)
-        setError('No se pudo conectar al servidor')
-        setLoading(false)
         const fallback = vehiclesData.map(v => ({ ...v, score: v.score }))
         setVehicles(fallback)
         setSelectedPlaca(fallback[0].placa)
@@ -709,7 +670,7 @@ export default function VehiclesPage() {
                 <strong>{selected.date}</strong>
               </div>
               <div className="details-row">
-                <span><FileDigit size={14} /> Placa</span>
+                <span><Hash size={14} /> Placa</span>
                 <strong className="mono">{selected.placa}</strong>
               </div>
               <div className="details-row">
@@ -721,7 +682,7 @@ export default function VehiclesPage() {
                 <strong className="red">{selected.siniestros} eventos</strong>
               </div>
               <div className="details-row">
-                <span><FileDigit size={14} /> Total reclamado</span>
+                <span><Hash size={14} /> Total reclamado</span>
                 <strong className="green">{selected.amount}</strong>
               </div>
             </div>

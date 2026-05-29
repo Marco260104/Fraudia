@@ -28,7 +28,7 @@ const mainMenu = [
 const entityMenu = [
   { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
   { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo' },
+  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
 ]
 
 const toolMenu = [
@@ -573,3 +573,4 @@ export function AlertsPage() {
     </main>
   )
 }
+

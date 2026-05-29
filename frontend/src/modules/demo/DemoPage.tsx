@@ -29,8 +29,8 @@ const mainMenu = [
 const entityMenu = [
   { label: 'Vehiculos', icon: FileText, href: '/vehiculos' },
   { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo' },
-  { label: 'Talleres', icon: Stethoscope, href: '/demo' },
+  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
+  { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
 ]
 
 const toolMenu = [
@@ -775,3 +775,4 @@ export function DemoPage() {
 function ArrowIcon() {
   return <span className="arrow-icon">→</span>
 }
+

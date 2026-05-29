@@ -11,6 +11,7 @@ import {
   Question,
   ShieldCheck,
   SlidersHorizontal,
+  Stethoscope,
   UserCircle,
   UsersThree,
   WarningCircle,
@@ -27,7 +28,8 @@ const mainMenu = [
 const entityMenu = [
   { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
   { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo' },
+  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
+  { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
 ]
 
 const toolMenu = [
@@ -701,3 +703,4 @@ export function CriticalCasesPage() {
 function ClockIcon() {
   return <span className="clock-icon">◔</span>
 }
+

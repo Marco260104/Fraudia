@@ -16,8 +16,8 @@ const mainMenu = [
 const entityMenu = [
   { label: 'Vehículos', icon: FileText, href: '/vehiculos', active: false },
   { label: 'Proveedores', icon: UsersThree, href: '/proveedores', active: true },
-  { label: 'Asegurados', icon: UserCircle, href: '/demo', active: false },
-  { label: 'Talleres', icon: Stethoscope, href: '/demo', active: false },
+  { label: 'Asegurados', icon: UserCircle, href: '/asegurados', active: false },
+  { label: 'Talleres', icon: Stethoscope, href: '/talleres', active: false },
 ]
 
 const toolMenu = [
@@ -276,9 +276,62 @@ export function ProvidersPage() {
             </article>
           </section>
 
+          {/* MIDDLE PANELS: Matrix & Activity */}
+          <section className="providers-two-col">
+            {/* Riesgo / Matriz de Proveedores */}
+            <article className="bottom-panel">
+              <h2 className="section-title">Matriz de Riesgo Operacional</h2>
+              <svg className="matrix-svg" viewBox="-20 -20 240 240">
+                {/* Grid */}
+                {[0, 50, 100, 150, 200].map(val => (
+                  <g key={`mgrid-${val}`}>
+                    <line className="matrix-grid" x1="0" y1={val} x2="200" y2={val} />
+                    <line className="matrix-grid" x1={val} y1="0" x2={val} y2="200" />
+                  </g>
+                ))}
+                
+                {/* Axes */}
+                <line className="matrix-axis" x1="0" y1="200" x2="200" y2="200" />
+                <line className="matrix-axis" x1="0" y1="200" x2="0" y2="0" />
+                
+                <text x="100" y="230" className="matrix-label" textAnchor="middle">Frecuencia de Reclamos →</text>
+                <text x="-100" y="-15" className="matrix-label" textAnchor="middle" transform="rotate(-90)">← Monto Promedio</text>
+
+                {/* Quadrants background */}
+                <rect x="100" y="0" width="100" height="100" fill="rgba(239, 68, 68, 0.05)" />
+                
+                {/* Points */}
+                {riskMatrixPoints.map(p => (
+                  <circle 
+                    key={p.id}
+                    className={`matrix-point ${p.type}`}
+                    cx={p.x * 2}
+                    cy={200 - (p.y * 2)}
+                    r="5"
+                  >
+                    <title>{p.name}</title>
+                  </circle>
+                ))}
+              </svg>
+            </article>
+
+            {/* Actividad en Vivo */}
+            <article className="bottom-panel">
+              <h2 className="section-title">Actividad Operacional</h2>
+              <div className="terminal-list">
+                {terminalLogs.map((log, i) => (
+                  <div key={i} className={`terminal-item ${log.type}`}>
+                    <span className="terminal-time">[{log.time}]</span>
+                    <span className="terminal-text">{log.text}</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </section>
+
           {/* SMART CARDS GRID */}
           <section className="smart-cards-section">
-            <h2 className="section-title">Proveedores en vigilancia</h2>
+            <h2 className="section-title">Grid de Proveedores</h2>
             <div className="smart-cards-grid">
               {smartCards.map(card => (
                 <div key={card.id} className="smart-card">
@@ -307,7 +360,7 @@ export function ProvidersPage() {
                     </div>
                   </div>
 
-                  {/* Mini Visual Trend (Sparkline Bars) */}
+                  {/* Mini Visual Trend */}
                   <div className="mini-visual">
                     {card.trend.map((val, i) => (
                       <div 
@@ -328,72 +381,39 @@ export function ProvidersPage() {
           </section>
 
           {/* BOTTOM PANELS */}
-          <section className="providers-bottom">
+          <section className="providers-two-col">
             
-            {/* Actividad en Vivo */}
-            <article className="bottom-panel">
-              <h2 className="section-title">Terminal Operacional</h2>
-              <div className="terminal-list">
-                {terminalLogs.map((log, i) => (
-                  <div key={i} className={`terminal-item ${log.type}`}>
-                    <span className="terminal-time">[{log.time}]</span>
-                    <span className="terminal-text">{log.text}</span>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            {/* Riesgo / Matriz de Proveedores */}
-            <article className="bottom-panel">
-              <h2 className="section-title">Matriz de Riesgo Operacional</h2>
-              <svg className="matrix-svg" viewBox="-20 -20 240 240">
-                {/* Grid */}
-                {[0, 50, 100, 150, 200].map(val => (
-                  <g key={`mgrid-${val}`}>
-                    <line className="matrix-grid" x1="0" y1={val} x2="200" y2={val} />
-                    <line className="matrix-grid" x1={val} y1="0" x2={val} y2="200" />
-                  </g>
-                ))}
-                
-                {/* Axes */}
-                <line className="matrix-axis" x1="0" y1="200" x2="200" y2="200" />
-                <line className="matrix-axis" x1="0" y1="200" x2="0" y2="0" />
-                
-                <text x="100" y="230" className="matrix-label" textAnchor="middle">Frecuencia de Reclamos →</text>
-                <text x="-100" y="-15" className="matrix-label" textAnchor="middle" transform="rotate(-90)">← Monto Promedio</text>
-
-                {/* Quadrants background (optional subtle coloring) */}
-                <rect x="100" y="0" width="100" height="100" fill="rgba(239, 68, 68, 0.05)" />
-                
-                {/* Points */}
-                {riskMatrixPoints.map(p => (
-                  <circle 
-                    key={p.id}
-                    className={`matrix-point ${p.type}`}
-                    cx={p.x * 2} // map 0-100 to 0-200
-                    cy={200 - (p.y * 2)} // invert Y axis
-                    r="5"
-                  >
-                    <title>{p.name}</title>
-                  </circle>
-                ))}
-              </svg>
-            </article>
-
             {/* Mapa de Proveedores */}
             <article className="bottom-panel">
-              <h2 className="section-title">Densidad Logística</h2>
+              <h2 className="section-title">Mapa Operacional</h2>
               <div className="map-placeholder">
                 <div className="map-grid-overlay"></div>
                 <div className="density-blob blob-1"></div>
                 <div className="density-blob blob-2"></div>
                 <div className="density-blob blob-3"></div>
-                {/* Markers to simulate locations */}
                 <div style={{ position: 'absolute', top: '45%', left: '55%', width: 8, height: 8, background: '#1e293b', borderRadius: '50%', border: '2px solid white' }}></div>
                 <div style={{ position: 'absolute', top: '25%', left: '35%', width: 8, height: 8, background: '#1e293b', borderRadius: '50%', border: '2px solid white' }}></div>
               </div>
             </article>
 
+            {/* IA en Tiempo Real */}
+            <article className="bottom-panel">
+              <h2 className="section-title">IA en Tiempo Real</h2>
+              <div className="terminal-list">
+                <div className="terminal-item info">
+                  <span className="terminal-time">[IA:Sys]</span>
+                  <span className="terminal-text">Actualizando scores operacionales en tiempo real...</span>
+                </div>
+                <div className="terminal-item critical">
+                  <span className="terminal-time">[IA:Alert]</span>
+                  <span className="terminal-text">Clúster de reclamos concentrado en Zona Norte. Ajustando ponderador de riesgo.</span>
+                </div>
+                <div className="terminal-item warning">
+                  <span className="terminal-time">[IA:Graph]</span>
+                  <span className="terminal-text">Analizando relaciones secundarias de Taller Express (profundidad 3).</span>
+                </div>
+              </div>
+            </article>
           </section>
 
         </main>
@@ -401,3 +421,4 @@ export function ProvidersPage() {
     </div>
   )
 }
+

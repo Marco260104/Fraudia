@@ -68,55 +68,42 @@ npm install && npm run dev
 
 Todo el sistema de detección de fraude vive en `backend/`:
 
-- `src/` → Código modular (ingesta, features, reglas, modelos, scoring, explicabilidad, agente IA)
-- `data/`, `models/`, `reports/`, `notebooks/`
+- `DataEnt/` → Fuente de verdad con los CSV actuales
+- `src/` → Código modular para ingesta, features, reglas, entrenamiento y scoring
+- `models/` → Artefactos entrenados y registro del experimento
+- `reports/` → Gráficos comparativos para justificar la elección de modelos
+- `data/processed/` → Salidas intermedias si se necesitan en futuras iteraciones
 
-Todo lo necesario para entrenar y correr el prototipo está dentro de `backend/`.
-
-Esto hace que el proyecto sea mucho más fácil de entender y ejecutar para el equipo y para los jueces del hackIAthon.
+El backend ya no depende del dataset sintético viejo para entrenar.
+La idea es tomar `DataEnt`, construir variables de riesgo y comparar 4 modelos para quedarse con el top 3 de mejor desempeño.
 
 ## Arquitectura
 
 ```
 fraudIA/
-├── data/                    # Datos sintéticos generados
+├── DataEnt/                 # Fuente actual de datos
+├── data/
 │   ├── raw/
 │   ├── processed/
-│   └── synthetic/           # CSVs generados (proveedores, asegurados, pólizas, siniestros, documentos)
+│   └── synthetic/           # Carpeta obsoleta de la etapa anterior
 ├── docs/                    # Documentación técnica
-├── models/                  # Modelos entrenados (.pkl)
-├── notebooks/               # Jupyter notebooks (exploración, modelo, evaluación)
+├── models/                  # Modelos entrenados y scoring
+├── notebooks/               # Espacio para análisis futuros
 ├── reports/                 # Reportes y gráficos de evaluación
-├── presentation/            # Presentación ejecutiva
-├── index.html               # Landing page profesional (abre directamente)
-├── src/                     # Código fuente modular
-│   ├── ingestion/           # Carga y generación de datos
-│   ├── features/            # Feature engineering y preprocesamiento
-│   ├── rules/               # Reglas de negocio (Strategy Pattern)
-│   ├── models/              # Modelos de ML (Strategy Pattern)
-│   ├── scoring/             # Score de riesgo (Strategy Pattern)
-│   ├── explainability/      # Explicabilidad (Strategy Pattern)
-│   ├── ai_agent/            # Agente IA conversacional
-│   ├── app/                 # Aplicación / Dashboard
-│   └── pipeline/            # Orquestación del pipeline completo
-├── tests/                   # Tests unitarios
-│   ├── test_rules.py
-│   └── test_edge_cases.py
+├── src/                     # Pipeline y módulos del backend
 ├── requirements.txt
-├── .env.example
 └── README.md
 ```
 
-## Patrón de Diseño: Strategy
+## Flujo de entrenamiento
 
-El sistema implementa el patrón **Strategy** en 4 módulos clave:
-
-| Módulo           | Estrategias                                                                 |
-|------------------|-----------------------------------------------------------------------------|
-| `rules/`         | BorderProximity, LateReporting, ClaimFrequency, RestrictedProvider, etc.    |
-| `models/`        | RandomForest, XGBoost, LightGBM                                             |
-| `scoring/`       | Híbrido (Reglas + ML), Solo Reglas, Solo ML                                 |
-| `explainability/`| Detallada, Breve, Resumen Ejecutivo                                          |
+1. Leer los CSV de `backend/DataEnt/`
+2. Normalizar columnas y cruzar tablas
+3. Construir variables de riesgo
+4. Generar un label heurístico para entrenamiento y evaluación
+5. Entrenar 4 modelos
+6. Comparar métricas y conservar el top 3
+7. Exportar gráficos y artefactos
 
 ## Instalación
 
@@ -126,43 +113,24 @@ pip install -r requirements.txt
 
 ## Ejecución
 
-### 1. Pipeline completo (generar datos + preprocesar + entrenar)
+### 1. Pipeline completo (cargar DataEnt + preprocesar + reentrenar)
 
 ```bash
 python -m src.pipeline.run_all
 ```
 
-### 2. Pasos individuales
+### 2. Artefactos generados
 
-```bash
-# Generar datos sintéticos
-python -m src.ingestion.generate_proveedores
-python -m src.ingestion.generate_asegurados
-python -m src.ingestion.generate_polizas
-python -m src.ingestion.generate_siniestros
-python -m src.ingestion.generate_documentos
-
-# Preprocesar
-python -m src.features.preprocess
-
-# Entrenar modelos
-python -m src.models.train_compare
-```
-
-### 3. Tests
-
-```bash
-python -m tests.test_rules
-python -m tests.test_edge_cases
-```
-
-## Dataset
-
-12,500 siniestros sintéticos (92% legítimos / 8% fraude) con:
-- 200 proveedores (20 en lista restrictiva)
-- 6,000 asegurados
-- 8,000 pólizas
-- Documentos asociados con niveles variables de calidad
+- `backend/models/training_summary.json`
+- `backend/models/scored_claims.csv`
+- `backend/reports/metrics_comparison.png`
+- `backend/reports/roc_comparison.png`
+- `backend/reports/pr_comparison.png`
+- `backend/reports/confusion_matrices.png`
+- `backend/reports/confusion_test_best.png`
+- `backend/reports/feature_importance.png`
+- `backend/reports/risk_rule_distribution.png`
+- `backend/reports/model_probability_distribution.png`
 
 ## Score de Riesgo
 

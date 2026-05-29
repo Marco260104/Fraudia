@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, CaretDown } from '@phosphor-icons/react'
 
 const navItems = [
@@ -15,45 +15,49 @@ type SiteShellProps = {
 }
 
 export function SiteShell({ children }: SiteShellProps) {
+  const location = useLocation()
   const navigate = useNavigate()
+  const showHeader = location.pathname === '/'
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <div className="container header-inner">
-          <button type="button" className="brand" onClick={() => navigate('/')}>
-            <img
-              src="/assets/Logo.png"
-              alt="fraudia"
-              className="brand-mark"
-              draggable={false}
-            />
-            <span className="brand-copy">
-              <strong>Fraudia</strong>
-              <span>Detección de fraude en siniestros</span>
-            </span>
-          </button>
+      {showHeader ? (
+        <header className="site-header">
+          <div className="container header-inner">
+            <button type="button" className="brand" onClick={() => navigate('/')}>
+              <img
+                src="/assets/Logo.png"
+                alt="fraudia"
+                className="brand-mark"
+                draggable={false}
+              />
+              <span className="brand-copy">
+                <strong>Fraudia</strong>
+                <span>Detección de fraude en siniestros</span>
+              </span>
+            </button>
 
-          <nav className="desktop-nav" aria-label="Navegación principal">
-            {navItems.map((item) => (
-              <Link key={item.label} to={item.href} className="nav-link">
-                {item.label}
-                <CaretDown size={12} weight="bold" />
-              </Link>
-            ))}
-          </nav>
+            <nav className="desktop-nav" aria-label="Navegación principal">
+              {navItems.map((item) => (
+                <Link key={item.label} to={item.href} className="nav-link">
+                  {item.label}
+                  <CaretDown size={12} weight="bold" />
+                </Link>
+              ))}
+            </nav>
 
-          <div className="header-actions">
-            <NavLink to="/demo" className="btn btn-secondary header-login">
-              Iniciar sesion
-            </NavLink>
-            <NavLink to="/demo" className="btn btn-primary">
-              Solicitar demo
-              <ArrowRight size={16} weight="bold" />
-            </NavLink>
+            <div className="header-actions">
+              <NavLink to="/demo" className="btn btn-secondary header-login">
+                Iniciar sesion
+              </NavLink>
+              <NavLink to="/demo" className="btn btn-primary">
+                Demo
+                <ArrowRight size={16} weight="bold" />
+              </NavLink>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       {children}
     </div>

@@ -1,20 +1,33 @@
-FROM node:20-slim
+# Stage 1: Build
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Install dependencies first (better layer caching)
-COPY package.json package-lock.json* ./
+# Build args para variables de entorno de Vite
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 
-# Force clean install of native optional dependencies (critical for Vite 6+/Rolldown on Linux)
-# This fixes the common "Cannot find native binding @rolldown/binding-linux-x64-gnu" error
+COPY package.json package-lock.json* ./
 RUN npm ci --no-audit --no-fund --include=optional && \
     npm cache clean --force
 
-# Copy source code (will be overridden by volume mount in dev)
 COPY . .
+RUN npm run build
 
-# Expose Vite port
-EXPOSE 5173
+# Stage 2: Serve con nginx
+FROM nginx:alpine
 
-# Important: force host 0.0.0.0 so it's reachable from outside the container (Windows/WSL)
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Configuracion nginx para React Router (SPA)
+RUN echo 'server { \
+    listen 80; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

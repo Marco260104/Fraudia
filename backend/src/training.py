@@ -33,7 +33,6 @@ NUMERIC_FEATURES = [
     "dias_ocurrencia_reporte",
     "monto_reclamado",
     "monto_estimado",
-    "monto_pagado",
     "dias_desde_inicio_poliza",
     "dias_hasta_fin_poliza",
     "reclamos_previos_asegurado",
@@ -52,7 +51,6 @@ NUMERIC_FEATURES = [
     "documentos_peritaje",
     "ratio_reclamo_suma_asegurada",
     "ratio_reclamo_estimado",
-    "ratio_pagado_reclamado",
     "descripcion_len",
     "descripcion_palabras",
     "es_robo",
@@ -109,7 +107,6 @@ def _build_preprocessor() -> ColumnTransformer:
 
 def _model_catalog() -> dict[str, Any]:
     return {
-        "logistic_regression": LogisticRegression(max_iter=2000, class_weight="balanced", random_state=42),
         "random_forest": RandomForestClassifier(
             n_estimators=300,
             max_depth=10,
@@ -117,16 +114,7 @@ def _model_catalog() -> dict[str, Any]:
             class_weight="balanced_subsample",
             random_state=42,
             n_jobs=-1,
-        ),
-        "gradient_boosting": GradientBoostingClassifier(random_state=42),
-        "extra_trees": ExtraTreesClassifier(
-            n_estimators=400,
-            max_depth=None,
-            min_samples_leaf=2,
-            class_weight="balanced",
-            random_state=42,
-            n_jobs=-1,
-        ),
+        )
     }
 
 

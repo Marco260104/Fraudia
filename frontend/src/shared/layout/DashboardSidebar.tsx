@@ -1,60 +1,53 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import {
-  Bell, CirclesThree, House, MapTrifold, ShieldCheck,
-  Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
-  SlidersHorizontal, CarSimple, Brain
+  House, SlidersHorizontal, Brain, FileText, 
+  ShieldCheck, Play
 } from '@phosphor-icons/react'
 import { API_BASE_URL } from '../../config/api'
-
-const entityMenu = [
-  { label: 'VehÃ­culos', icon: CarSimple, href: '/vehiculos' },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
-  { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora' },
-  { label: 'Transparencia IA', icon: Brain, href: '/modelo' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'ConfiguraciÃ³n', icon: SlidersHorizontal, href: '/configuracion' },
-]
 
 interface DashboardSidebarProps {
   activeRoute: string
 }
 
 export function DashboardSidebar({ activeRoute }: DashboardSidebarProps) {
-  const [criticalCasesCount, setCriticalCasesCount] = useState<string>('â€“')
+  const [criticalCasesCount, setCriticalCasesCount] = useState<string>('0')
+  const location = useLocation()
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/kpis`)
       .then(res => res.json())
       .then(data => {
-        if (data.casos_criticos) setCriticalCasesCount(data.casos_criticos.toString())
+        if (data && data.casos_criticos) {
+          setCriticalCasesCount(data.casos_criticos.toString())
+        }
       })
-      .catch(() => setCriticalCasesCount('â€“'))
+      .catch(() => setCriticalCasesCount('0'))
   }, [])
 
   const mainMenu = [
-    { label: 'Centro de inteligencia', icon: House, href: '/dashboard', badge: undefined as string | undefined },
-    { label: 'Casos crÃ­ticos', icon: WarningCircle, href: '/casos-criticos', badge: criticalCasesCount },
-    { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', badge: undefined },
-    { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', badge: undefined },
-    { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', badge: undefined },
+    { label: 'Inicio', icon: House, href: '/' },
+    { label: 'Centro de Control', icon: SlidersHorizontal, href: '/dashboard', badge: criticalCasesCount !== '0' ? criticalCasesCount : undefined },
+    { label: 'Asistente IA', icon: Brain, href: '/asistente' },
+    { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
   ]
 
   return (
-    <aside className="dashboard-sidebar">
-      <button type="button" className="dashboard-brand">
-        <img src="/assets/Logo.png" alt="Fraudia" />
-        <span>fraudia</span>
-      </button>
+    <aside className="dashboard-sidebar" style={{ background: '#090d16', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', height: '100vh', padding: '24px 18px', width: '280px', flexShrink: 0, position: 'sticky', top: 0 }}>
+      
+      {/* Brand logo */}
+      <Link to="/" className="dashboard-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#fff', fontSize: '1.25rem', fontWeight: 800 }}>
+          F
+        </div>
+        <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.02em' }}>fraudia</span>
+        <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: '4px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', fontWeight: 'bold' }}>v3.0</span>
+      </Link>
 
-      <div className="dashboard-nav-group">
-        <p className="dashboard-nav-label">MenÃº principal</p>
-        <nav className="dashboard-nav">
+      {/* Main Menu Navigation */}
+      <div className="dashboard-nav-group" style={{ flex: 1 }}>
+        <p className="dashboard-nav-label" style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '14px', paddingLeft: '8px' }}>Menú Principal</p>
+        <nav className="dashboard-nav" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {mainMenu.map((item) => {
             const Icon = item.icon
             const isActive = activeRoute === item.href
@@ -63,63 +56,74 @@ export function DashboardSidebar({ activeRoute }: DashboardSidebarProps) {
                 key={item.label}
                 to={item.href}
                 className={`dashboard-nav-item ${isActive ? 'is-active' : ''}`}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px', 
+                  padding: '12px 14px', 
+                  borderRadius: '10px', 
+                  color: isActive ? '#f8fafc' : '#94a3b8', 
+                  background: isActive ? 'rgba(59,130,246,0.08)' : 'transparent', 
+                  border: isActive ? '1px solid rgba(59,130,246,0.15)' : '1px solid transparent',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem',
+                  fontWeight: isActive ? 700 : 500,
+                  transition: 'all 0.15s ease'
+                }}
               >
-                <Icon size={18} weight="bold" />
-                <span>{item.label}</span>
-                {item.badge ? <strong>{item.badge}</strong> : null}
+                <Icon size={18} weight={isActive ? "bold" : "regular"} color={isActive ? "#3b82f6" : "#94a3b8"} />
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.badge ? (
+                  <strong style={{ background: '#ef4444', color: '#fff', fontSize: '0.72rem', padding: '1px 6px', borderRadius: '6px', fontWeight: 'bold' }}>
+                    {item.badge}
+                  </strong>
+                ) : null}
               </Link>
             )
           })}
         </nav>
       </div>
 
-      <div className="dashboard-nav-group">
-        <p className="dashboard-nav-label">Entidades</p>
-        <nav className="dashboard-nav">
-          {entityMenu.map((item) => {
-            const Icon = item.icon
-            const isActive = activeRoute === item.href
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`dashboard-nav-item ${isActive ? 'is-active' : ''}`}
-              >
-                <Icon size={18} weight="bold" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
-      </div>
-
-      <div className="dashboard-nav-group">
-        <p className="dashboard-nav-label">Herramientas</p>
-        <nav className="dashboard-nav">
-          {toolMenu.map((item) => {
-            const Icon = item.icon
-            const isActive = activeRoute === item.href
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`dashboard-nav-item ${isActive ? 'is-active' : ''}`}
-              >
-                <Icon size={18} weight="bold" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
-      </div>
-
-      <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-        <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-        <div className="sac-info">
-          <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-          <p>Asistente inteligente</p>
+      {/* GLOWING HACKATHON DEMO BUTTON */}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        
+        <Link 
+          to="/dashboard?demo=true" 
+          className="demo-glowing-btn"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '8px', 
+            height: '42px', 
+            borderRadius: '10px', 
+            background: 'linear-gradient(135deg, #f97316, #ea580c)', 
+            color: '#fff', 
+            textDecoration: 'none', 
+            fontSize: '0.88rem', 
+            fontWeight: 'bold',
+            boxShadow: '0 4px 20px rgba(249,115,22,0.3)',
+            animation: 'pulseGlow 2s infinite',
+            textAlign: 'center'
+          }}
+        >
+          <Play size={16} weight="fill" />
+          Ejecutar Demo Inteligente
+        </Link>
+        
+        {/* Analyst Profile card */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 6px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', alignContent: 'center', color: '#3b82f6', fontWeight: 'bold', fontSize: '0.85rem' }}>
+            AS
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '0.85rem', fontWeight: 'bold', color: '#f8fafc' }}>Analista Forense</h4>
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Unidad Antifraude</span>
+          </div>
         </div>
-      </Link>
+
+      </div>
+
     </aside>
   )
 }

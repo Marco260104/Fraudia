@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   AlertTriangle,
   ArrowRight,
-  BarChart2,
   Bell,
   Building2,
   Calculator,
@@ -112,8 +111,8 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
-  { label: 'Calculadora de riesgo', icon: Calculator, href: '/demo', group: 'tools' },
-  { label: 'Reportes', icon: BarChart2, href: '/demo', group: 'tools' },
+  { label: 'Calculadora de riesgo', icon: Calculator, href: '/calculadora', group: 'tools' },
+  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
   { label: 'Configuración', icon: Settings, href: '/demo', group: 'tools' },
 ]
 

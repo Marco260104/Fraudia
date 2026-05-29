@@ -36,7 +36,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ChartLineUp, href: '/calculadora', active: false },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/demo', active: false },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
 ]
 
 const kpis = [

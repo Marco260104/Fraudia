@@ -2,7 +2,7 @@ import {
   Bell, CirclesThree, House, MapTrifold, ShieldCheck,
   Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
   Brain, ArrowRight, ArrowUpRight, ArrowDownRight, Target,
-  DownloadSimple, Lightning, Lightbulb, ChartLineUp
+  DownloadSimple, Lightning, Lightbulb, ChartLineUp, SlidersHorizontal
 } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import './ReportsPage.css'
@@ -25,6 +25,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
   { label: 'Reportes Inteligentes', icon: ChartLineUp, href: '/reportes', active: true },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
 ]
 
 export function ReportsPage() {

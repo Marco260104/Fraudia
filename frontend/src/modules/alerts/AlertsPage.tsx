@@ -34,7 +34,7 @@ const entityMenu = [
 const toolMenu = [
   { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'Configuración', icon: SlidersHorizontal },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion' },
 ]
 
 const tabs = [

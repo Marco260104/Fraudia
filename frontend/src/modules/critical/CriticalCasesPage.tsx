@@ -186,9 +186,27 @@ function toClassName(value: string) {
 }
 
 export function CriticalCasesPage() {
+  const defaultDetections = [
+    { time: '09:42', title: 'Nueva coincidencia narrativa detectada', detail: 'Caso #FR-87291 - Similitud 94%', tone: 'red' },
+    { time: '09:44', title: 'Taller vinculado a 4 reclamos', detail: 'Taller Express - Red detectada', tone: 'orange' },
+    { time: '09:45', title: 'Riesgo elevado automáticamente', detail: 'Caso #FR-76123 - Score 89%', tone: 'red' },
+    { time: '09:47', title: 'Geolocalización sospechosa identificada', detail: 'Caso #FR-65109 - Patrón inusual', tone: 'orange' },
+    { time: '09:48', title: 'Caso escalado por IA', detail: 'Caso #FR-87291 - Escalado automático', tone: 'violet' },
+  ]
+
+  const defaultMapPins = [
+    { label: '3', x: '48%', y: '8%', tone: 'red', sucursal: 'Quito' },
+    { label: '5', x: '26%', y: '62%', tone: 'red', sucursal: 'Portoviejo' },
+    { label: '7', x: '73%', y: '23%', tone: 'red', sucursal: 'Guayaquil' },
+    { label: '12', x: '55%', y: '44%', tone: 'red', sucursal: 'Cuenca' },
+  ]
+
   const [cases, setCases] = useState(criticalCases)
   const [kpiData, setKpiData] = useState(overviewCards)
   const [activeCase, setActiveCase] = useState<(typeof criticalCases)[number]>(criticalCases[0])
+  const [detections, setDetections] = useState(defaultDetections)
+  const [pins, setPins] = useState(defaultMapPins)
+  const [timelineData, setTimelineData] = useState(timeline)
 
   useEffect(() => {
     // 1. Cargar KPIs reales de la base de datos
@@ -217,7 +235,50 @@ export function CriticalCasesPage() {
         }
       })
       .catch(err => console.log('Usando fallback para Casos Críticos (Servidor API apagado):', err))
+
+    // 3. Cargar detecciones en tiempo real de la base de datos
+    fetch('http://localhost:8000/api/detections')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setDetections(data)
+        }
+      })
+      .catch(err => console.log('Usando fallback para Detecciones (Servidor API apagado):', err))
+
+    // 4. Cargar pines del mapa de la base de datos
+    fetch('http://localhost:8000/api/map-claims')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setPins(data)
+        }
+      })
+      .catch(err => console.log('Usando fallback para Pines del Mapa (Servidor API apagado):', err))
   }, [])
+
+  // 5. Escuchar cambios de activeCase para cargar su timeline dinámico
+  useEffect(() => {
+    if (!activeCase) return
+
+    fetch(`http://localhost:8000/api/cases/${activeCase.caseId}/timeline`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setTimelineData(data)
+        }
+      })
+      .catch(err => {
+        console.log(`Usando fallback de timeline para ${activeCase.caseId}:`, err)
+        setTimelineData([
+          { time: '09:14', label: 'Reclamo generado', tone: 'green' },
+          { time: '09:15', label: 'Validación IA iniciada', tone: 'blue' },
+          { time: '09:16', label: activeCase.risk === 'CRÍTICO' ? 'Riesgo Crítico Detectado' : 'Validación completada', tone: activeCase.risk === 'CRÍTICO' ? 'red' : 'orange' },
+          { time: '09:17', label: activeCase.alert, tone: 'red' },
+          { time: '09:18', label: activeCase.state, tone: 'violet' },
+        ])
+      })
+  }, [activeCase])
 
   return (
     <main className="page critical-page">
@@ -533,8 +594,8 @@ export function CriticalCasesPage() {
                   </div>
 
                   <div className="timeline-list">
-                    {timeline.map((item) => (
-                      <div key={item.time} className="timeline-row">
+                    {timelineData.map((item, idx) => (
+                      <div key={idx} className="timeline-row">
                         <span className={`timeline-dot tone-${item.tone}`} />
                         <strong>{item.time}</strong>
                         <p>{item.label}</p>
@@ -581,10 +642,21 @@ export function CriticalCasesPage() {
                 <span className="map-heat heat-red" />
                 <span className="map-heat heat-orange" />
                 <span className="map-heat heat-yellow" />
-                <span className="map-badge badge-3">3</span>
-                <span className="map-badge badge-5">5</span>
-                <span className="map-badge badge-7">7</span>
-                <span className="map-badge badge-12">12</span>
+                {pins.map((pin) => (
+                  <span
+                    key={pin.sucursal}
+                    className="map-badge"
+                    style={{
+                      left: pin.x,
+                      top: pin.y,
+                      backgroundColor: pin.tone === 'red' ? '#ef4444' : pin.tone === 'orange' ? '#f97316' : '#3b82f6',
+                      width: parseInt(pin.label) > 12 ? '42px' : '34px',
+                      height: parseInt(pin.label) > 12 ? '42px' : '34px'
+                    } as CSSProperties}
+                  >
+                    {pin.label}
+                  </span>
+                ))}
                 <div className="map-controls">
                   <button type="button">+</button>
                   <button type="button">-</button>
@@ -605,41 +677,15 @@ export function CriticalCasesPage() {
               </div>
 
               <div className="detections-list">
-                <div className="detection-item tone-red">
-                  <strong>09:42</strong>
-                  <div>
-                    <p>Nueva coincidencia narrativa detectada</p>
-                    <span>Caso #FR-87291 - Similitud 94%</span>
+                {detections.map((item, idx) => (
+                  <div key={idx} className={`detection-item tone-${item.tone}`}>
+                    <strong>{item.time}</strong>
+                    <div>
+                      <p>{item.title}</p>
+                      <span>{item.detail}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="detection-item tone-orange">
-                  <strong>09:44</strong>
-                  <div>
-                    <p>Taller vinculado a 4 reclamos</p>
-                    <span>Taller Express - Red detectada</span>
-                  </div>
-                </div>
-                <div className="detection-item tone-red">
-                  <strong>09:45</strong>
-                  <div>
-                    <p>Riesgo elevado automáticamente</p>
-                    <span>Caso #FR-76123 - Score 89%</span>
-                  </div>
-                </div>
-                <div className="detection-item tone-orange">
-                  <strong>09:47</strong>
-                  <div>
-                    <p>Geolocalización sospechosa identificada</p>
-                    <span>Caso #FR-65109 - Patrón inusual</span>
-                  </div>
-                </div>
-                <div className="detection-item tone-violet">
-                  <strong>09:48</strong>
-                  <div>
-                    <p>Caso escalado por IA</p>
-                    <span>Caso #FR-87291 - Escalado automático</span>
-                  </div>
-                </div>
+                ))}
               </div>
               <a href="#" className="text-link">
                 Ver todas las detecciones <ArrowGlyph />

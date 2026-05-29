@@ -272,6 +272,308 @@ def calculate_risk(payload: ClaimCalculatorInput):
         "alerts": alerts if alerts else ["Sin alertas de alta prioridad detectadas"]
     }
 
+@app.get("/api/detections")
+def get_detections(limit: int = 5):
+    try:
+        engine = get_db_engine()
+        query = text("""
+            SELECT 
+                id_siniestro,
+                fecha_reporte,
+                similitud_narrativa_max,
+                prov_lista_restrictiva,
+                docs_completos
+            FROM siniestros
+            WHERE similitud_narrativa_max >= 0.70 
+               OR prov_lista_restrictiva = 'Sí' 
+               OR docs_completos = 'No'
+            ORDER BY fecha_reporte DESC, similitud_narrativa_max DESC
+            LIMIT :limit
+        """)
+        
+        detections = []
+        with engine.connect() as conn:
+            results = conn.execute(query, {"limit": limit}).fetchall()
+            for r in results:
+                # Decidir título, tono y detalle según características
+                time_str = r.fecha_reporte.strftime("%H:%M") if r.fecha_reporte else "11:42"
+                # Si la fecha_reporte no tiene hora válida (es decir, es medianoche 00:00), asignamos una basada en el ID
+                if time_str == "00:00":
+                    num = sum(ord(char) for char in r.id_siniestro) % 60
+                    time_str = f"09:{num:02d}"
+                
+                score_val = int(r.similitud_narrativa_max * 100) if r.similitud_narrativa_max else 0
+                
+                if r.similitud_narrativa_max and r.similitud_narrativa_max >= 0.85:
+                    title = "Nueva coincidencia narrativa detectada"
+                    detail = f"Caso #FR-{r.id_siniestro.split('-')[1]} - Similitud {score_val}%"
+                    tone = "red"
+                elif r.prov_lista_restrictiva == "Sí":
+                    title = "Proveedor observado en siniestro"
+                    detail = f"Caso #FR-{r.id_siniestro.split('-')[1]} - Taller observado"
+                    tone = "orange"
+                elif r.docs_completos == "No":
+                    title = "Documentación incompleta detectada"
+                    detail = f"Caso #FR-{r.id_siniestro.split('-')[1]} - Falta soporte legal"
+                    tone = "violet"
+                else:
+                    title = "Alerta de riesgo medio identificada"
+                    detail = f"Caso #FR-{r.id_siniestro.split('-')[1]} - Puntuación {score_val}%"
+                    tone = "orange"
+                
+                detections.append({
+                    "time": time_str,
+                    "title": title,
+                    "detail": detail,
+                    "tone": tone
+                })
+        
+        return detections if detections else get_mock_detections()
+    except Exception as e:
+        print(f"Error cargando detecciones: {e}")
+        return get_mock_detections()
+
+@app.get("/api/map-claims")
+def get_map_claims():
+    try:
+        engine = get_db_engine()
+        query = text("""
+            SELECT sucursal, COUNT(*) 
+            FROM siniestros 
+            WHERE similitud_narrativa_max >= 0.60 
+               OR prov_lista_restrictiva = 'Sí'
+            GROUP BY sucursal
+        """)
+        
+        # Mapeo de coordenadas (x, y) relativas a la distribución del mapa en frontend
+        coords = {
+            "Esmeraldas": {"x": "28%", "y": "16%"},
+            "Quito": {"x": "38%", "y": "24%"},
+            "Ibarra": {"x": "41%", "y": "14%"},
+            "Portoviejo": {"x": "16%", "y": "38%"},
+            "Manta": {"x": "12%", "y": "40%"},
+            "Ambato": {"x": "37%", "y": "38%"},
+            "Riobamba": {"x": "38%", "y": "45%"},
+            "Cuenca": {"x": "35%", "y": "62%"},
+            "Guayaquil": {"x": "22%", "y": "54%"},
+            "Loja": {"x": "32%", "y": "80%"}
+        }
+        
+        pins = []
+        with engine.connect() as conn:
+            results = conn.execute(query).fetchall()
+            for r in results:
+                suc = r[0]
+                cnt = r[1]
+                if suc in coords:
+                    # Asignar tono basado en criticidad
+                    if cnt > 12:
+                        tone = "red"
+                    elif cnt > 6:
+                        tone = "orange"
+                    else:
+                        tone = "blue"
+                        
+                    pins.append({
+                        "label": str(cnt),
+                        "x": coords[suc]["x"],
+                        "y": coords[suc]["y"],
+                        "tone": tone,
+                        "sucursal": suc
+                    })
+        
+        # Si no hay pines en la BD, retornar mocks
+        return pins if pins else get_mock_map_claims()
+    except Exception as e:
+        print(f"Error cargando pines del mapa: {e}")
+        return get_mock_map_claims()
+
+@app.get("/api/narratives/similar")
+def get_similar_narratives():
+    try:
+        engine = get_db_engine()
+        # 1. Traer el reclamo con mayor similitud narrativa y descripción válida
+        max_query = text("""
+            SELECT id_siniestro, descripcion_evento, similitud_narrativa_max 
+            FROM siniestros
+            WHERE descripcion_evento IS NOT NULL 
+              AND similitud_narrativa_max IS NOT NULL
+            ORDER BY similitud_narrativa_max DESC
+            LIMIT 1
+        """)
+        
+        with engine.connect() as conn:
+            max_row = conn.execute(max_query).fetchone()
+            if not max_row:
+                return get_mock_narratives_similar()
+                
+            max_id = max_row[0]
+            desc = max_row[1]
+            score_val = f"{int(max_row[2] * 100)}%"
+            
+            # Recortar texto para el preview de la tarjeta si es muy largo
+            if len(desc) > 120:
+                desc = desc[:117] + "..."
+            
+            # 2. Buscar otros siniestros con similitud alta para rellenar la lista de soporte
+            support_query = text("""
+                SELECT id_siniestro, similitud_narrativa_max 
+                FROM siniestros
+                WHERE id_siniestro != :max_id
+                  AND similitud_narrativa_max IS NOT NULL
+                ORDER BY similitud_narrativa_max DESC
+                LIMIT 4
+            """)
+            
+            support_rows = conn.execute(support_query, {"max_id": max_id}).fetchall()
+            similar_list = []
+            for r in support_rows:
+                short_id = f"#S-{r[0].split('-')[1]}" if "-" in r[0] else f"#S-{r[0]}"
+                similar_list.append({
+                    "id": short_id,
+                    "score": f"{int(r[1] * 100)}%"
+                })
+                
+            return {
+                "original_text": desc,
+                "score": score_val,
+                "similar_list": similar_list if similar_list else get_mock_narratives_similar()["similar_list"]
+            }
+    except Exception as e:
+        print(f"Error cargando narrativas similares: {e}")
+        return get_mock_narratives_similar()
+
+@app.get("/api/cases/{case_id}/timeline")
+def get_case_timeline(case_id: str):
+    try:
+        clean_id = case_id.replace("#", "").replace("FR-", "").replace("SIN-", "").strip()
+        db_id = f"SIN-{clean_id}"
+        
+        engine = get_db_engine()
+        query = text("""
+            SELECT 
+                s.id_siniestro,
+                s.docs_completos,
+                s.prov_lista_restrictiva,
+                s.similitud_narrativa_max
+            FROM siniestros s
+            WHERE s.id_siniestro = :db_id
+        """)
+        
+        with engine.connect() as conn:
+            r = conn.execute(query, {"db_id": db_id}).fetchone()
+            if not r:
+                return get_mock_timeline(case_id)
+                
+            docs = r.docs_completos
+            restrictive = r.prov_lista_restrictiva
+            sim = float(r.similitud_narrativa_max) if r.similitud_narrativa_max else 0.0
+            
+            # Construir cronología forense basada en las reglas
+            timeline = [
+                {"time": "09:14", "label": "Reclamo ingresado al sistema de póliza", "tone": "green"},
+                {"time": "09:15", "label": "Validación iniciada en motor cognitivo fraudIA", "tone": "blue"}
+            ]
+            
+            # Step 3: Similitud
+            if sim >= 0.75:
+                timeline.append({
+                    "time": "09:16",
+                    "label": f"Alta coincidencia de narrativa detectada ({int(sim*100)}%)",
+                    "tone": "red"
+                })
+            else:
+                timeline.append({
+                    "time": "09:16",
+                    "label": f"Análisis narrativo completado (Similitud {int(sim*100)}%)",
+                    "tone": "green"
+                })
+                
+            # Step 4: Proveedor o Documentación
+            if restrictive == "Sí":
+                timeline.append({
+                    "time": "09:17",
+                    "label": "Proveedor detectado en Lista Restrictiva activa",
+                    "tone": "red"
+                })
+            elif docs == "No":
+                timeline.append({
+                    "time": "09:17",
+                    "label": "Alerta: Documentación legal obligatoria incompleta",
+                    "tone": "orange"
+                })
+            else:
+                timeline.append({
+                    "time": "09:17",
+                    "label": "Verificación de taller y documentación aprobada",
+                    "tone": "green"
+                })
+                
+            # Step 5: Escalado o estado final
+            if sim >= 0.85 or restrictive == "Sí":
+                timeline.append({
+                    "time": "09:18",
+                    "label": "Caso Escalado Automáticamente a Unidad de Control",
+                    "tone": "red"
+                })
+            elif sim >= 0.60 or docs == "No":
+                timeline.append({
+                    "time": "09:18",
+                    "label": "Caso en revisión intermedia de Auditoría",
+                    "tone": "orange"
+                })
+            else:
+                timeline.append({
+                    "time": "09:18",
+                    "label": "Recomendación de aprobación sin alertas de fraude",
+                    "tone": "green"
+                })
+                
+            return timeline
+    except Exception as e:
+        print(f"Error cargando timeline para {case_id}: {e}")
+        return get_mock_timeline(case_id)
+
+# Helpers de datos Mock
+def get_mock_detections():
+    return [
+        {"time": "09:42", "title": "Nueva coincidencia narrativa detectada", "detail": "Caso #FR-87291 - Similitud 94%", "tone": "red"},
+        {"time": "09:44", "title": "Taller vinculado a 4 reclamos", "detail": "Taller Express - Red detectada", "tone": "orange"},
+        {"time": "09:45", "title": "Riesgo elevado automáticamente", "detail": "Caso #FR-76123 - Score 89%", "tone": "red"},
+        {"time": "09:47", "title": "Geolocalización sospechosa identificada", "detail": "Caso #FR-65109 - Patrón inusual", "tone": "orange"},
+        {"time": "09:48", "title": "Caso escalado por IA", "detail": "Caso #FR-87291 - Escalado automático", "tone": "violet"}
+    ]
+
+def get_mock_map_claims():
+    return [
+        {"label": "7", "x": "76%", "y": "12%", "tone": "blue", "sucursal": "Quito"},
+        {"label": "9", "x": "84%", "y": "37%", "tone": "blue", "sucursal": "Guayaquil"},
+        {"label": "12", "x": "32%", "y": "56%", "tone": "blue", "sucursal": "Portoviejo"},
+        {"label": "15", "x": "61%", "y": "82%", "tone": "blue", "sucursal": "Cuenca"}
+    ]
+
+def get_mock_narratives_similar():
+    return {
+        "original_text": "El vehiculo fue impactado mientras estaba estacionado en la via publica por un tercero que se dio a la fuga...",
+        "score": "89%",
+        "similar_list": [
+            {"id": "#S-78123", "score": "85%"},
+            {"id": "#S-65109", "score": "82%"},
+            {"id": "#S-55867", "score": "79%"},
+            {"id": "#S-44321", "score": "76%"}
+        ]
+    }
+
+def get_mock_timeline(case_id: str):
+    return [
+        {"time": "09:14", "label": "Reclamo generado", "tone": "green"},
+        {"time": "09:15", "label": "Validación IA iniciada", "tone": "blue"},
+        {"time": "09:16", "label": f"Coincidencia encontrada para {case_id}", "tone": "orange"},
+        {"time": "09:17", "label": "Red sospechosa detectada", "tone": "red"},
+        {"time": "09:18", "label": "Escalado automático", "tone": "red"}
+    ]
+
+
 # Datos Mock de respaldo (Fallback)
 def get_mock_cases():
     return [

@@ -110,8 +110,8 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
   { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
   { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
-  { label: 'Asegurados', icon: Users, href: '/demo', group: 'entities' },
-  { label: 'Talleres', icon: Wrench, href: '/demo', group: 'entities' },
+  { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
+  { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Calculator, href: '/demo', group: 'tools' },
   { label: 'Reportes', icon: BarChart2, href: '/demo', group: 'tools' },
   { label: 'Configuración', icon: Settings, href: '/demo', group: 'tools' },
@@ -2453,3 +2453,4 @@ export default function MapaSiniestrosPage() {
     </main>
   )
 }
+

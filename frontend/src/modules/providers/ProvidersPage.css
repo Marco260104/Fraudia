@@ -364,12 +364,13 @@
 .btn-primary-sm { background: var(--network-blue); color: white; border: none; }
 .btn-primary-sm:hover { background: #2563eb; }
 
-/* Bottom Panels */
-.providers-bottom {
+/* Panel Layouts */
+.providers-two-col {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
   padding: 0 32px;
+  margin-bottom: 32px;
 }
 
 .bottom-panel {

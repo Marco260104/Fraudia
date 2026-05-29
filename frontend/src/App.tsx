@@ -11,6 +11,8 @@ import AseguradosPage from './modules/insureds/InsuredsPage'
 import MapaSiniestrosPage from './modules/map/MapSiniestrosPage'
 import VehiclesPage from './modules/vehicles/VehiclesPage'
 import { ProvidersPage } from './modules/providers/ProvidersPage'
+import { CalculatorPage } from './modules/calculator/CalculatorPage'
+import { ReportsPage } from './modules/reports/ReportsPage'
 
 function App() {
   const location = useLocation()
@@ -29,6 +31,8 @@ function App() {
         <Route path="/talleres" element={<TalleresPage />} />
         <Route path="/vehiculos" element={<VehiclesPage />} />
         <Route path="/proveedores" element={<ProvidersPage />} />
+        <Route path="/calculadora" element={<CalculatorPage />} />
+        <Route path="/reportes" element={<ReportsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SiteShell>

@@ -34,9 +34,9 @@ const entityMenu = [
 ]
 
 const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ChartLineUp, active: true },
-  { label: 'Reportes', icon: FileText },
-  { label: 'Configuración', icon: SlidersHorizontal },
+  { label: 'Calculadora de riesgo', icon: ChartLineUp, href: '/calculadora', active: false },
+  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
+  { label: 'Configuración', icon: SlidersHorizontal, href: '/demo', active: false },
 ]
 
 const kpis = [
@@ -305,7 +305,7 @@ export function DemoPage() {
                 return (
                   <a
                     key={item.label}
-                    href="#"
+                    href={item.href}
                     className={`dashboard-nav-item ${item.active ? 'is-tool-active' : ''}`}
                   >
                     <Icon size={18} weight="bold" />

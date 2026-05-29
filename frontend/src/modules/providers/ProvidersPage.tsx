@@ -21,8 +21,8 @@ const entityMenu = [
 ]
 
 const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/demo', active: false },
-  { label: 'Reportes', icon: FileText, href: '/demo', active: false },
+  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
+  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
 ]
 
 const smartCards = [

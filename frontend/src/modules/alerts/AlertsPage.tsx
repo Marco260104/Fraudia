@@ -32,8 +32,8 @@ const entityMenu = [
 ]
 
 const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ChartLineUp },
-  { label: 'Reportes', icon: FileText },
+  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora' },
+  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
   { label: 'Configuración', icon: SlidersHorizontal },
 ]
 
@@ -242,7 +242,7 @@ export function AlertsPage() {
                 const Icon = item.icon
 
                 return (
-                  <a key={item.label} href="/demo" className="dashboard-nav-item">
+                  <a key={item.label} href={item.href} className="dashboard-nav-item">
                     <Icon size={18} weight="bold" />
                     <span>{item.label}</span>
                   </a>

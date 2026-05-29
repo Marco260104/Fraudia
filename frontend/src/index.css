@@ -5295,3 +5295,44 @@ h3,
     grid-column: auto;
   }
 }
+
+/* IA Assistant Global Sidebar Card */
+.sidebar-assistant-card {
+  margin-top: auto;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.sidebar-assistant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.35);
+  color: white;
+}
+.sidebar-assistant-card::before {
+  content: '';
+  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+  animation: rotate-glow 4s linear infinite;
+}
+@keyframes rotate-glow { 100% { transform: rotate(360deg); } }
+.sac-icon {
+  position: relative; z-index: 2;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.sac-info { position: relative; z-index: 2; display: flex; flex-direction: column; }
+.sac-info h4 { margin: 0; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+.sac-badge { background: white; color: var(--accent-strong); font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; }
+.sac-info p { margin: 2px 0 0; font-size: 11px; opacity: 0.9; }

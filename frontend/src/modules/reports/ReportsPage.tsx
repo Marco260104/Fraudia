@@ -85,6 +85,14 @@ export function ReportsPage() {
               })}
             </nav>
           </div>
+        
+          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
+            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
+            <div className="sac-info">
+              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
+              <p>Asistente inteligente</p>
+            </div>
+          </Link>
         </aside>
 
         {/* MAIN CONTENT */}

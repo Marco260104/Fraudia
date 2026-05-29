@@ -17,7 +17,7 @@ export function AppLoader() {
     <div className="route-loader" aria-hidden="true">
       <div className="route-loader-card">
         <img
-          src={encodeURI('/LOGO Y CARGA.gif')}
+          src={encodeURI('/fraudia_bot.gif')}
           alt=""
           className="route-loader-gif"
           draggable={false}

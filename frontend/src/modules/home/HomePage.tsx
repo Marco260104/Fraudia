@@ -1,298 +1,443 @@
-import { lazy, Suspense, useCallback, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight } from '@phosphor-icons/react'
-import { AssetFigure } from '../../shared/ui/AssetFigure'
-import { InfoCard } from '../../shared/ui/InfoCard'
-import { MetricCard } from '../../shared/ui/MetricCard'
-import { Reveal } from '../../shared/ui/Reveal'
-import { SectionHeading } from '../../shared/ui/SectionHeading'
-import {
-  evidenceAssets,
-  footerGroups,
-  problemPoints,
-  solutionFlow,
-  siteHighlights,
-  stats,
-} from './homeContent'
-const Spline = lazy(() => import('@splinetool/react-spline'))
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { ArrowRight, ChartLineUp, ShieldCheck, Sparkle, Target } from '@phosphor-icons/react'
+import { gsap } from 'gsap'
+
+const trustLogos = ['Oracle', 'AWS', 'Microsoft Azure', 'NVIDIA', 'OpenAI', 'Databricks']
+
+const heroStats = [
+  { value: '-42%', label: 'Tiempo de revision manual' },
+  { value: '+27%', label: 'Deteccion temprana' },
+  { value: '$2.45M', label: 'Ahorro estimado' },
+  { value: '+300%', label: 'Capacidad en paralelo' },
+]
+
+const insightCards = [
+  {
+    icon: ShieldCheck,
+    title: 'Conexiones invisibles',
+    description: 'Detectamos relaciones entre asegurados, proveedores, vehiculos y eventos.',
+  },
+  {
+    icon: Sparkle,
+    title: 'Patrones ocultos',
+    description: 'Identificamos comportamientos atipicos que la revision manual suele perder.',
+  },
+  {
+    icon: Target,
+    title: 'Explicabilidad total',
+    description: 'Cada alerta incluye el motivo y los factores que la empujaron al score.',
+  },
+]
+
+const processSteps = [
+  {
+    step: '01',
+    title: 'Ingesta de datos',
+    description: 'Datos del siniestro, poliza, documentos y señales de terceros.',
+    icon: ChartLineUp,
+  },
+  {
+    step: '02',
+    title: 'Motor de IA',
+    description: 'Modelos de texto y reglas operativas para sumar evidencia.',
+    icon: Sparkle,
+  },
+  {
+    step: '03',
+    title: 'Deteccion de riesgo',
+    description: 'Score priorizado con nivel de confianza y trazabilidad.',
+    icon: Target,
+  },
+  {
+    step: '04',
+    title: 'Analisis y accion',
+    description: 'Alertas claras para decidir rapido sin perder contexto.',
+    icon: ShieldCheck,
+  },
+  {
+    step: '05',
+    title: 'Mejora continua',
+    description: 'Feedback del analista para afinar reglas y entrenamiento.',
+    icon: ChartLineUp,
+  },
+]
+
+const evidenceImages = [
+  { src: '/assets/reports/roc_comparison.png', title: 'ROC' },
+  { src: '/assets/reports/pr_comparison.png', title: 'Precision-Recall' },
+  { src: '/assets/reports/feature_importance.png', title: 'Variables' },
+]
 
 export function HomePage() {
-  const navigate = useNavigate()
-  const splineRef = useRef<HTMLDivElement | null>(null)
-  const [sceneReady, setSceneReady] = useState(false)
+  const heroRef = useRef<HTMLElement | null>(null)
+  const visualRef = useRef<HTMLDivElement | null>(null)
 
-  const dispatchSplineMouse = useCallback((clientX: number, clientY: number) => {
-    const root = splineRef.current
+  const motionTargets = useMemo(
+    () => [
+      '.hero-eyebrow',
+      '.hero-title',
+      '.hero-copy p',
+      '.hero-actions',
+      '.hero-pills',
+      '.trust-title',
+      '.trust-logo',
+      '.section-heading',
+      '.insight-card',
+      '.stat-card',
+      '.process-card',
+      '.dashboard-panel',
+      '.footer-column',
+    ],
+    [],
+  )
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.set(motionTargets, { autoAlpha: 0, y: 24 })
+
+      const timeline = gsap.timeline({ defaults: { duration: 0.9, ease: 'power3.out' } })
+
+      timeline
+        .to('.hero-eyebrow', { autoAlpha: 1, y: 0 })
+        .to('.hero-title', { autoAlpha: 1, y: 0 }, '-=0.65')
+        .to('.hero-copy p', { autoAlpha: 1, y: 0, stagger: 0.12 }, '-=0.6')
+        .to('.hero-actions', { autoAlpha: 1, y: 0 }, '-=0.55')
+        .to('.hero-pills', { autoAlpha: 1, y: 0 }, '-=0.55')
+        .to('.hero-visual', { autoAlpha: 1, y: 0 }, '-=0.55')
+        .to('.trust-title', { autoAlpha: 1, y: 0 }, '-=0.2')
+        .to('.trust-logo', { autoAlpha: 1, y: 0, stagger: 0.05 }, '-=0.45')
+        .to('.section-heading', { autoAlpha: 1, y: 0, stagger: 0.06 }, '-=0.2')
+        .to('.insight-card', { autoAlpha: 1, y: 0, stagger: 0.08 }, '-=0.5')
+        .to('.stat-card', { autoAlpha: 1, y: 0, stagger: 0.06 }, '-=0.5')
+        .to('.process-card', { autoAlpha: 1, y: 0, stagger: 0.06 }, '-=0.35')
+        .to('.dashboard-panel', { autoAlpha: 1, y: 0 }, '-=0.45')
+        .to('.footer-column', { autoAlpha: 1, y: 0, stagger: 0.05 }, '-=0.25')
+
+      gsap.to('.hero-orb', {
+        y: -18,
+        duration: 5,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+        stagger: 0.5,
+      })
+
+      gsap.to('.hero-gif-shell', {
+        y: -8,
+        duration: 4.8,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true,
+      })
+    }, heroRef)
+
+    return () => ctx.revert()
+  }, [motionTargets])
+
+  useEffect(() => {
+    const root = visualRef.current
     if (!root) return
 
-    const canvas = root.querySelector('canvas') ?? root.querySelector('iframe')
-    if (!canvas) return
+    const handleMove = (event: MouseEvent) => {
+      const bounds = root.getBoundingClientRect()
+      const offsetX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2
+      const offsetY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2
 
-    canvas.dispatchEvent(
-      new MouseEvent('mousemove', {
-        bubbles: true,
-        cancelable: true,
-        clientX,
-        clientY,
-        view: window,
-      }),
-    )
+      gsap.to(root.querySelectorAll<HTMLElement>('[data-parallax]'), {
+        x: (_, target) => Number(target.dataset.parallax ?? 0) * offsetX,
+        y: (_, target) => Number(target.dataset.parallax ?? 0) * offsetY * 0.7,
+        duration: 0.45,
+        ease: 'power3.out',
+      })
+    }
+
+    const reset = () => {
+      gsap.to(root.querySelectorAll<HTMLElement>('[data-parallax]'), {
+        x: 0,
+        y: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+      })
+    }
+
+    root.addEventListener('mousemove', handleMove)
+    root.addEventListener('mouseleave', reset)
+
+    return () => {
+      root.removeEventListener('mousemove', handleMove)
+      root.removeEventListener('mouseleave', reset)
+    }
   }, [])
 
   return (
-    <main className="page home-page">
-      <section
-        className="hero-section"
-        onMouseMove={(event) => dispatchSplineMouse(event.clientX, event.clientY)}
-        onTouchMove={(event) => {
-          const touch = event.touches[0]
-          if (touch) {
-            dispatchSplineMouse(touch.clientX, touch.clientY)
-          }
-        }}
-      >
-        <div className="hero-background" aria-hidden="true">
-          <span className="hero-backdrop hero-backdrop-a" />
-          <span className="hero-backdrop hero-backdrop-b" />
+    <main className="page home-page" ref={heroRef}>
+      <section className="hero-section">
+        <div className="hero-backdrop" aria-hidden="true">
+          <span className="hero-orb hero-orb-a" />
+          <span className="hero-orb hero-orb-b" />
+          <span className="hero-orb hero-orb-c" />
+          <span className="hero-grid" />
         </div>
 
-        <div className="container hero-grid">
+        <div className="container hero-grid-layout">
           <div className="hero-copy">
-            <p className="eyebrow">Plataforma corporativa antifraude</p>
-            <h1>Fraudia prioriza siniestros con claridad, control y criterio humano.</h1>
-            <p className="hero-description">
-              Una interfaz limpia para explicar riesgos, resumir el negocio y guiar la revisión sin saturar la
-              primera pantalla.
+            <p className="hero-eyebrow">Inteligencia que protege tu negocio</p>
+            <h1 className="hero-title">
+              Detectamos fraude <span>antes de que cueste millones.</span>
+            </h1>
+            <p>
+              Fraudia utiliza inteligencia artificial, analisis avanzado y reglas de negocio para identificar
+              patrones ocultos y prevenir perdidas en siniestros.
             </p>
 
             <div className="hero-actions">
-              <button type="button" className="btn btn-primary" onClick={() => navigate('/demo')}>
-                Probar demo <ArrowRight size={16} />
-              </button>
-              <a className="btn btn-secondary" href="#solucion">
-                Ver el flujo
+              <a className="btn btn-primary" href="#solucion">
+                Explorar plataforma <ArrowRight size={16} weight="bold" />
               </a>
+              <a className="btn btn-secondary" href="#como-funciona">
+                Ver como funciona
+              </a>
+            </div>
+
+            <div className="hero-pills">
+              <span>Analsis en tiempo real</span>
+              <span>Alertas explicables</span>
+              <span>Decisiones mas rapidas</span>
             </div>
           </div>
 
-          <div className="hero-visual">
-            <div className="corner-card corner-card-top-left">
-              <span>Modelo</span>
-              <strong>Híbrido</strong>
-              <p>Reglas + IA + explicación</p>
-            </div>
-            <div className="corner-card corner-card-top-right">
-              <span>Datos</span>
-              <strong>2021–2025</strong>
-              <p>Base de entrenamiento y validación</p>
-            </div>
-            <div className="corner-card corner-card-bottom-left">
-              <span>Score</span>
-              <strong>87%</strong>
-              <p>Prioridad alta</p>
-            </div>
-            <div className="corner-card corner-card-bottom-right">
-              <span>Acción</span>
-              <strong>Revisar</strong>
-              <p>Ruta de análisis humano</p>
-            </div>
-
-            <div className={`hero-stage ${sceneReady ? 'is-ready' : ''}`}>
-              <div className="hero-spline-frame">
-                <div className="hero-spline-overlay" />
-                <Suspense fallback={<div className="hero-spline hero-spline-fallback" />}>
-                  <div className="hero-spline" ref={splineRef}>
-                    <Spline
-                      scene="https://prod.spline.design/p10SBeJMwqghZCQ7/scene.splinecode"
-                      onLoad={() => setSceneReady(true)}
-                    />
-                  </div>
-                </Suspense>
+          <div className="hero-visual" ref={visualRef}>
+            <div className="hero-figure hero-gif-frame">
+              <div className="hero-gif-shell" data-parallax="18">
+                <img
+                  src={encodeURI('/fraudia_bot.gif')}
+                  alt="Asistente animado de Fraudia"
+                  className="hero-gif"
+                  draggable={false}
+                />
+              </div>
+              <div className="hero-gif-halo" aria-hidden="true" />
+              <div className="hero-gif-caption" data-parallax="10">
+                <span>Asistente activo</span>
+                <strong>En bucle continuo</strong>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="section section-flush">
-        <div className="container">
-          <div className="stats-grid">
-            {stats.map((item) => (
-              <Reveal key={item.label}>
-                <MetricCard value={item.value} label={item.label} detail="Validado en la fase de entrenamiento." />
-              </Reveal>
+      <section className="trust-strip">
+        <div className="container trust-inner">
+          <p className="trust-title">Tecnologia confiable. Resultados reales.</p>
+          <div className="trust-logos">
+            {trustLogos.map((logo) => (
+              <span key={logo} className="trust-logo">
+                {logo}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="problema" className="section">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Qué resuelve"
-            title="Una lectura corporativa del problema, no una demo de hackatón."
-            description="Fraudia reúne los datos mínimos del siniestro para priorizar revisión, reducir ruido y mostrar por qué un caso merece atención."
-          />
+      <section id="solucion" className="section section-light">
+        <div className="container insight-grid">
+          <div className="section-heading">
+            <p className="section-eyebrow">Miramos mas alla de los datos</p>
+            <h2>
+              Cada siniestro es una historia.
+              <span>Nosotros encontramos lo que otros no ven.</span>
+            </h2>
+            <p>
+              Combinamos multiples fuentes de informacion, modelos de machine learning, procesamiento de lenguaje
+              natural y reglas de negocio para descubrir conexiones ocultas.
+            </p>
 
-          <div className="card-grid four-up">
-            {problemPoints.map((point, index) => (
-              <Reveal key={point.title} delay={index * 80}>
-                <InfoCard
-                  title={point.title}
-                  description={point.description}
-                  icon={<point.icon size={18} />}
-                  tone={point.tone}
+            <div className="insight-list">
+              {insightCards.map((item) => {
+                const Icon = item.icon
+                return (
+                  <article key={item.title} className="insight-card">
+                    <span className="insight-icon">
+                      <Icon size={18} weight="bold" />
+                    </span>
+                    <h3>{item.title}</h3>
+                    <p>{item.description}</p>
+                  </article>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="insight-visual">
+            <div className="insight-network" aria-hidden="true">
+              <span className="insight-glow insight-glow-blue" />
+              <span className="insight-glow insight-glow-red" />
+              {Array.from({ length: 84 }).map((_, index) => (
+                <span
+                  key={index}
+                  className={`insight-dot insight-dot-${(index % 5) + 1}`}
+                  style={
+                    {
+                      '--dot-x': `${8 + ((index * 13) % 80)}%`,
+                      '--dot-y': `${6 + ((index * 17) % 80)}%`,
+                      '--dot-delay': `${index * 0.03}s`,
+                    } as CSSProperties
+                  }
                 />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="solucion" className="section section-alt">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Lo que usamos"
-            title="Componentes del sitio y del producto, revelados al desplazarse."
-            description="Cada bloque entra con un movimiento suave y consistente para mantener una sensación fluida mientras bajas por la página."
-          />
-
-          <div className="feature-grid">
-            {siteHighlights.map((feature, index) => (
-              <Reveal key={feature.title} delay={index * 60}>
-                <InfoCard
-                  title={feature.title}
-                  description={feature.description}
-                  icon={<feature.icon size={18} />}
-                  tone={feature.tone}
-                />
-              </Reveal>
-            ))}
-          </div>
-
-          <div className="solution-band">
-            {solutionFlow.map((step, index) => (
-              <Reveal key={step.title} delay={index * 50}>
-                <article className={`solution-step tone-${step.tone ?? 'blue'}`}>
-                  <step.icon size={20} />
-                  <div>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="training" className="section">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Estadísticas del entrenamiento"
-            title="Resultados listos para presentar con consistencia visual."
-            description="Estas cifras sostienen el relato del modelo y dejan clara la calidad del entrenamiento y la validación."
-          />
-
-          <div className="training-stats">
-            {stats.map((item, index) => (
-              <Reveal key={item.label} delay={index * 60}>
-                <article className="training-stat-card">
-                  <strong>{item.value}</strong>
-                  <span>{item.label}</span>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="evidencia" className="section section-alt">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Fotos del entrenamiento"
-            title="Las imágenes de activos viven aquí, no escondidas en el backend."
-            description="Reutilizamos las imágenes del entrenamiento para reforzar la credibilidad del sistema y apoyar la narrativa visual."
-          />
-
-          <div className="asset-grid">
-            {evidenceAssets.map((asset, index) => (
-              <Reveal key={asset.title} delay={index * 70}>
-                <AssetFigure src={asset.src} title={asset.title} description={asset.description} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="arquitectura" className="section">
-        <div className="container architecture-grid">
-          <div className="architecture-copy">
-            <SectionHeading
-              eyebrow="Gobierno"
-              title="Arquitectura limpia, por módulos, para crecimiento real."
-              description="La demo y el futuro del producto quedan ordenados para que cada módulo tenga su propia sección, su propia lógica y su propio desarrollo."
-            />
-
-            <div className="risk-signals">
-              {siteHighlights.map((signal, index) => (
-                <Reveal key={signal.title} delay={index * 60}>
-                  <div className="signal-chip">
-                    <span>{signal.title}</span>
-                    <strong>{signal.description}</strong>
-                  </div>
-                </Reveal>
               ))}
             </div>
+
+            <article className="insight-floating-card card-top">
+              <span>Asegurado</span>
+              <strong>12 siniestros</strong>
+            </article>
+            <article className="insight-floating-card card-left">
+              <span>Vehiculo</span>
+              <strong>5 eventos similares</strong>
+            </article>
+            <article className="insight-floating-card card-right">
+              <span>Proveedor</span>
+              <strong>Coincidencias en 7 casos</strong>
+            </article>
+          </div>
+        </div>
+
+        <div className="container stats-band">
+          {heroStats.map((stat) => (
+            <article key={stat.label} className="stat-card">
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="como-funciona" className="section">
+        <div className="container">
+          <div className="section-heading section-heading-wide">
+            <p className="section-eyebrow">Un proceso inteligente</p>
+            <h2>Asi funciona Fraudia</h2>
           </div>
 
-          <div className="architecture-panel">
-            <div className="architecture-frame">
-              <p className="frame-label">Ruta de entrega</p>
-              <h3>Home → demo → módulos funcionales</h3>
-              <ul>
-                <li>Home corporativa con narrativa del negocio y evidencia.</li>
-                <li>Demo con menú lateral preparado para módulos internos.</li>
-                <li>GIF de carga y logo integrados sin cortes visuales.</li>
-                <li>Fondo blanco, limpio y con transición suave entre secciones.</li>
-              </ul>
+          <div className="process-grid">
+            {processSteps.map((item) => {
+              const Icon = item.icon
+              return (
+                <article key={item.step} className="process-card">
+                  <span className="process-step">{item.step}</span>
+                  <span className="process-icon">
+                    <Icon size={20} weight="bold" />
+                  </span>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section-light">
+        <div className="container dashboard-grid">
+          <div className="dashboard-copy">
+            <p className="section-eyebrow">Control total en un solo lugar</p>
+            <h2>Un centro de inteligencia disenado para actuar.</h2>
+            <p>
+              Visualiza, analiza y gestiona los casos de mayor riesgo con dashboards intuitivos, filtros avanzados y
+              metricas en tiempo real.
+            </p>
+            <a className="text-link" href="#evidencia">
+              Ver dashboard en vivo <ArrowRight size={16} weight="bold" />
+            </a>
+          </div>
+
+          <div className="dashboard-panel">
+            <div className="dashboard-topbar">
+              <span>Panel de analisis</span>
+              <strong>Fraudia Control Center</strong>
             </div>
+            <div className="dashboard-grid-mini">
+              <article>
+                <span>24,562</span>
+                <p>Eventos analizados</p>
+              </article>
+              <article>
+                <span>1,389</span>
+                <p>Alertas generadas</p>
+              </article>
+              <article>
+                <span>87%</span>
+                <p>Score promedio</p>
+              </article>
+              <article>
+                <span>$2.45M</span>
+                <p>Ahorro estimado</p>
+              </article>
+            </div>
+            <div className="dashboard-graph">
+              <span className="dashboard-pulse" />
+              <span className="dashboard-pulse dashboard-pulse-alt" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="evidencia" className="section">
+        <div className="container">
+          <div className="section-heading section-heading-wide">
+            <p className="section-eyebrow">Evidencia visual</p>
+            <h2>Modelos, metricas y señales listos para presentar.</h2>
+          </div>
+
+          <div className="evidence-grid">
+            {evidenceImages.map((image) => (
+              <figure key={image.title} className="evidence-card">
+                <img src={image.src} alt={image.title} />
+                <figcaption>
+                  <strong>{image.title}</strong>
+                  <span>Comparativo desde el entrenamiento del modelo.</span>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
 
       <footer className="site-footer">
         <div className="container footer-grid">
-          <div className="footer-brand">
+          <div className="footer-column footer-brand">
+            <img src="/assets/Logo.png" alt="Fraudia" />
             <p>
-              Fraudia presenta una plataforma corporativa para priorizar siniestros, explicar riesgos y apoyar la
-              revisión humana.
+              Inteligencia que previene. Confianza que protege. Una plataforma para priorizar siniestros y apoyar la
+              revision humana.
             </p>
           </div>
 
-          {footerGroups.map((group) => (
-            <div key={group.title} className="footer-group">
-              <h3>{group.title}</h3>
-              <div className="footer-links">
-                {group.links.map((link) => (
-                  link.href.startsWith('/') ? (
-                    <Link key={link.label} to={link.href}>
-                      {link.label}
-                    </Link>
-                  ) : (
-                    <a key={link.label} href={link.href}>
-                      {link.label}
-                    </a>
-                  )
-                ))}
-              </div>
-            </div>
-          ))}
+          <div className="footer-column">
+            <h3>Producto</h3>
+            <a href="#solucion">Plataforma</a>
+            <a href="#como-funciona">Funcionalidades</a>
+            <a href="#evidencia">Metricas</a>
+          </div>
+
+          <div className="footer-column">
+            <h3>Recursos</h3>
+            <a href="#evidencia">Documentacion</a>
+            <a href="#solucion">Blog</a>
+            <a href="#como-funciona">Casos de uso</a>
+          </div>
+
+          <div className="footer-column">
+            <h3>Empresa</h3>
+            <a href="#solucion">Nosotros</a>
+            <a href="#como-funciona">Contacto</a>
+            <a href="#evidencia">Webinars</a>
+          </div>
         </div>
 
         <div className="container footer-bottom">
-          <span>Fraudia · Sistema corporativo antifraude</span>
-          <span>Diseño limpio · Animación suave · Base modular</span>
+          <span>© 2026 Fraudia. Todos los derechos reservados.</span>
+          <span>Politica de privacidad · Terminos de uso</span>
         </div>
       </footer>
     </main>

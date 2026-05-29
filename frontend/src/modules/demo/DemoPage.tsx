@@ -19,11 +19,11 @@ import {
 } from '@phosphor-icons/react'
 
 const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, active: true },
-  { label: 'Casos críticos', icon: WarningCircle, badge: '18' },
-  { label: 'Alertas IA', icon: Bell },
-  { label: 'Mapa de siniestros', icon: MapTrifold },
-  { label: 'Narrativas similares', icon: CirclesThree },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: true },
+  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
+  { label: 'Alertas IA', icon: Bell, href: '/demo' },
+  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/demo' },
+  { label: 'Narrativas similares', icon: CirclesThree, href: '/demo' },
 ]
 
 const entityMenu = [
@@ -156,7 +156,7 @@ export function DemoPage() {
                 return (
                   <a
                     key={item.label}
-                    href="#"
+                    href={item.href}
                     className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}
                   >
                     <Icon size={18} weight="bold" />

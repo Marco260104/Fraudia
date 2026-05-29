@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom';
 import type { CSSProperties } from 'react'
+import './DemoPage.css'
 import {
   Bell,
   CaretDown,
@@ -203,18 +205,14 @@ export function DemoPage() {
               })}
             </nav>
           </div>
-
-          <section className="dashboard-assistant">
-            <div className="dashboard-assistant-head">
-              <ShieldCheck size={20} weight="bold" />
-              <strong>IA Assistant</strong>
+        
+          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
+            <div className="sac-icon"><ShieldCheck size={24} /></div>
+            <div className="sac-info">
+              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
+              <p>Asistente inteligente</p>
             </div>
-            <p>Pregúntame sobre patrones, casos o cualquier análisis que necesites.</p>
-            <button type="button" className="dashboard-assistant-cta">
-              <span>Abrir chat</span>
-              <ArrowIcon />
-            </button>
-          </section>
+          </Link>
         </aside>
 
         <section className="dashboard-main">

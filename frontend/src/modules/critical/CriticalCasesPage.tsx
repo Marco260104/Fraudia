@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
   Bell,
@@ -154,6 +154,39 @@ function toClassName(value: string) {
 }
 
 export function CriticalCasesPage() {
+  const [cases, setCases] = useState(criticalCases)
+  const [kpiData, setKpiData] = useState(overviewCards)
+  const [activeCase, setActiveCase] = useState<any>(criticalCases[0])
+
+  useEffect(() => {
+    // 1. Cargar KPIs reales de la base de datos
+    fetch('http://localhost:8000/api/kpis')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setKpiData([
+            { title: 'Casos críticos', value: data.casos_criticos, accent: 'red', delta: '+12% vs ayer' },
+            { title: 'Monto bajo investigación', value: data.monto_reclamado, accent: 'orange', delta: 'Suma total en BD' },
+            { title: 'Redes sospechosas detectadas', value: '32', accent: 'blue', delta: 'Conexiones activas' },
+            { title: 'Riesgo promedio', value: data.riesgo_promedio, accent: 'red', delta: 'Nivel severo' },
+            { title: 'Casos escalados', value: '7', accent: 'violet', delta: '+75% vs ayer' },
+          ])
+        }
+      })
+      .catch(err => console.log('Usando fallback para KPIs (Servidor API apagado):', err))
+
+    // 2. Cargar casos críticos reales de la base de datos
+    fetch('http://localhost:8000/api/cases/critical')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setCases(data)
+          setActiveCase(data[0])
+        }
+      })
+      .catch(err => console.log('Usando fallback para Casos Críticos (Servidor API apagado):', err))
+  }, [])
+
   return (
     <main className="page critical-page">
       <div className="dashboard-layout critical-layout">
@@ -299,7 +332,7 @@ export function CriticalCasesPage() {
           </section>
 
           <section className="critical-overview">
-            {overviewCards.map((card) => (
+            {kpiData.map((card) => (
               <article key={card.title} className="critical-overview-card">
                 <p>{card.title}</p>
                 <strong>{card.value}</strong>
@@ -336,8 +369,13 @@ export function CriticalCasesPage() {
                   <span>Acciones</span>
                 </div>
 
-                {criticalCases.map((row) => (
-                  <div key={row.caseId} className="critical-table-row">
+                {cases.map((row) => (
+                  <div 
+                    key={row.caseId} 
+                    className={`critical-table-row ${activeCase && activeCase.caseId === row.caseId ? 'is-active-row' : ''}`}
+                    onClick={() => setActiveCase(row)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <strong>{row.caseId}</strong>
                     <span>{row.insured}</span>
                     <span className={`critical-badge risk-${toClassName(row.risk)}`}>{row.risk}</span>
@@ -351,16 +389,16 @@ export function CriticalCasesPage() {
                       {row.state}
                     </span>
                     <div className="critical-actions">
-                      <button type="button">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); setActiveCase(row); }}>
                         <Eye size={16} weight="bold" />
                       </button>
-                      <button type="button">
+                      <button type="button" onClick={(e) => e.stopPropagation()}>
                         <FileText size={16} weight="bold" />
                       </button>
-                      <button type="button">
+                      <button type="button" onClick={(e) => e.stopPropagation()}>
                         <ClockIcon />
                       </button>
-                      <button type="button">
+                      <button type="button" onClick={(e) => e.stopPropagation()}>
                         <ArrowRight size={16} weight="bold" />
                       </button>
                     </div>
@@ -372,49 +410,58 @@ export function CriticalCasesPage() {
             <aside className="critical-rail">
               <article className="critical-panel active-case-panel">
                 <p className="panel-kicker">Caso activo</p>
-                <div className="active-case-head">
-                  <div>
-                    <strong>#FR-87291</strong>
-                    <span className="risk-pill danger">CRÍTICO</span>
-                  </div>
-                  <div className="critical-gauge">
-                    <span className="critical-gauge-track" />
-                    <span className="critical-gauge-fill" />
-                    <span className="critical-gauge-needle" />
-                  </div>
-                </div>
+                {activeCase && (
+                  <>
+                    <div className="active-case-head">
+                      <div>
+                        <strong>{activeCase.caseId}</strong>
+                        <span className={`risk-pill ${activeCase.risk === 'CRÍTICO' ? 'danger' : activeCase.risk === 'ALTO' ? 'warning' : 'info'}`}>
+                          {activeCase.risk}
+                        </span>
+                      </div>
+                      <div className="critical-gauge">
+                        <span className="critical-gauge-track" />
+                        <span 
+                          className="critical-gauge-fill" 
+                          style={{ transform: `rotate(${(parseFloat(activeCase.score) / 100) * 180 - 90}deg)` } as CSSProperties} 
+                        />
+                        <span className="critical-gauge-needle" />
+                      </div>
+                    </div>
 
-                <div className="active-score critical-score">
-                  <strong>96%</strong>
-                  <span>RIESGO CRÍTICO</span>
-                </div>
+                    <div className="active-score critical-score">
+                      <strong>{activeCase.score}</strong>
+                      <span>RIESGO {activeCase.risk}</span>
+                    </div>
 
-                <dl className="case-details">
-                  <div>
-                    <dt>Asegurado</dt>
-                    <dd>Carlos Méndez</dd>
-                  </div>
-                  <div>
-                    <dt>Proveedor</dt>
-                    <dd>Taller Express</dd>
-                  </div>
-                  <div>
-                    <dt>Ciudad</dt>
-                    <dd>Medellín, Antioquia</dd>
-                  </div>
-                  <div>
-                    <dt>Vehículo</dt>
-                    <dd>KIA Sportage 2021</dd>
-                  </div>
-                  <div>
-                    <dt>Monto reclamado</dt>
-                    <dd>$28,450</dd>
-                  </div>
-                  <div>
-                    <dt>Fecha del evento</dt>
-                    <dd>28/05/2025</dd>
-                  </div>
-                </dl>
+                    <dl className="case-details">
+                      <div>
+                        <dt>Asegurado</dt>
+                        <dd>{activeCase.insured}</dd>
+                      </div>
+                      <div>
+                        <dt>Proveedor</dt>
+                        <dd>{activeCase.provider || 'Taller Express'}</dd>
+                      </div>
+                      <div>
+                        <dt>Ciudad</dt>
+                        <dd>{activeCase.city || 'Quito, Pichincha'}</dd>
+                      </div>
+                      <div>
+                        <dt>Vehículo</dt>
+                        <dd>{activeCase.vehicle || 'KIA Sportage 2021'}</dd>
+                      </div>
+                      <div>
+                        <dt>Monto reclamado</dt>
+                        <dd>{activeCase.amount}</dd>
+                      </div>
+                      <div>
+                        <dt>Fecha del evento</dt>
+                        <dd>{activeCase.date || '28/05/2025'}</dd>
+                      </div>
+                    </dl>
+                  </>
+                )}
 
                 <div className="case-actions">
                   <button type="button" className="btn btn-primary case-primary">

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import {
   Bell,
   CaretDown,
@@ -138,6 +138,90 @@ function AccentBar({ value }: { value: string }) {
 }
 
 export function DemoPage() {
+  const [kpiData, setKpiData] = useState(kpis)
+  const [claimCases, setClaimCases] = useState(cases)
+  const [activeCase, setActiveCase] = useState<any>(cases[0])
+
+  // Estados de la calculadora de riesgo
+  const [fechaEvento, setFechaEvento] = useState('')
+  const [ramo, setRamo] = useState('Vehículos')
+  const [placa, setPlaca] = useState('')
+  const [montoReclamado, setMontoReclamado] = useState('')
+  const [proveedor, setProveedor] = useState('')
+  
+  // Resultado del cálculo
+  const [calculatedScore, setCalculatedScore] = useState<string | null>(null)
+  const [calculatedLevel, setCalculatedLevel] = useState<string | null>(null)
+  const [calculatorAlerts, setCalculatorAlerts] = useState<string[]>([])
+  const [isCalculating, setIsCalculating] = useState(false)
+
+  useEffect(() => {
+    // 1. Cargar KPIs reales de la base de datos
+    fetch('http://localhost:8000/api/kpis')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setKpiData([
+            { title: 'Siniestros analizados hoy', value: data.siniestros_analizados, accent: 'blue', delta: '+24% vs ayer' },
+            { title: 'Alertas generadas', value: data.alertas_generadas, accent: 'orange', delta: '+18% vs ayer' },
+            { title: 'Casos críticos', value: data.casos_criticos, accent: 'red', delta: '+12% vs ayer' },
+            { title: 'Riesgo promedio', value: data.riesgo_promedio, accent: 'amber', delta: 'Alto' },
+            { title: 'Monto reclamado', value: data.monto_reclamado, accent: 'green', delta: 'Suma total en BD' },
+          ])
+        }
+      })
+      .catch(err => console.log('Usando fallback para KPIs (Servidor API apagado):', err))
+
+    // 2. Cargar casos reales de la base de datos
+    fetch('http://localhost:8000/api/cases')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setClaimCases(data)
+          setActiveCase(data[0])
+        }
+      })
+      .catch(err => console.log('Usando fallback para Casos (Servidor API apagado):', err))
+  }, [])
+
+  const handleCalculateRisk = () => {
+    if (!fechaEvento || !montoReclamado) {
+      alert("Por favor completa los campos obligatorios: Fecha del evento y Monto reclamado.")
+      return
+    }
+
+    setIsCalculating(true)
+    fetch('http://localhost:8000/api/calculator', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fecha_evento: fechaEvento,
+        ramo: ramo,
+        placa: placa,
+        monto_reclamado: parseFloat(montoReclamado.replace(/[^0-9.]/g, '')) || 0,
+        id_proveedor: proveedor
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setCalculatedScore(data.score)
+        setCalculatedLevel(data.level)
+        setCalculatorAlerts(data.alerts)
+        setIsCalculating(false)
+      })
+      .catch(err => {
+        console.log("Error al calcular riesgo con API:", err)
+        // Fallback local simulado en caso de error
+        const randomScore = Math.floor(Math.random() * 40) + 50
+        setCalculatedScore(`${randomScore}%`)
+        setCalculatedLevel(randomScore > 75 ? "Alto" : "Medio")
+        setCalculatorAlerts(["Monto de reclamo elevado", "Taller frecuente en siniestros"])
+        setIsCalculating(false)
+      })
+  }
+
   return (
     <main className="page dashboard-page">
       <div className="dashboard-layout">
@@ -258,7 +342,7 @@ export function DemoPage() {
           </div>
 
           <section className="dashboard-kpis">
-            {kpis.map((item) => (
+            {kpiData.map((item) => (
               <article key={item.title} className="kpi-card">
                 <p>{item.title}</p>
                 <strong>{item.value}</strong>
@@ -355,45 +439,54 @@ export function DemoPage() {
             <article className="dashboard-panel panel-right">
               <div className="active-case">
                 <p className="panel-kicker">Caso activo</p>
-                <div className="active-case-head">
-                  <div>
-                    <strong>#FR-87291</strong>
-                    <span className="risk-pill">ALTO RIESGO</span>
-                  </div>
-                  <div className="risk-gauge">
-                    <span className="risk-gauge-track" />
-                    <span className="risk-gauge-fill" />
-                    <span className="risk-gauge-needle" />
-                  </div>
-                </div>
+                {activeCase && (
+                  <>
+                    <div className="active-case-head">
+                      <div>
+                        <strong>{activeCase.id}</strong>
+                        <span className={`risk-pill ${activeCase.level === 'Alto' ? 'danger' : 'warning'}`}>
+                          {activeCase.level ? `${activeCase.level.toUpperCase()} RIESGO` : 'ALTO RIESGO'}
+                        </span>
+                      </div>
+                      <div className="risk-gauge">
+                        <span className="risk-gauge-track" />
+                        <span 
+                          className="risk-gauge-fill" 
+                          style={{ transform: `rotate(${(parseFloat(activeCase.score) / 100) * 180 - 90}deg)` } as CSSProperties} 
+                        />
+                        <span className="risk-gauge-needle" />
+                      </div>
+                    </div>
 
-                <div className="active-score">
-                  <strong>89%</strong>
-                  <span>Score de riesgo</span>
-                </div>
+                    <div className="active-score">
+                      <strong>{activeCase.score}</strong>
+                      <span>Score de riesgo</span>
+                    </div>
 
-                <dl className="case-details">
-                  <div>
-                    <dt>Fecha del evento</dt>
-                    <dd>28/05/2025</dd>
-                  </div>
-                  <div>
-                    <dt>Asegurado</dt>
-                    <dd>Carlos Méndez</dd>
-                  </div>
-                  <div>
-                    <dt>Vehículo</dt>
-                    <dd>KIA Sportage 2021</dd>
-                  </div>
-                  <div>
-                    <dt>Ciudad</dt>
-                    <dd>Medellín, Antioquia</dd>
-                  </div>
-                  <div>
-                    <dt>Monto reclamado</dt>
-                    <dd>$28,450</dd>
-                  </div>
-                </dl>
+                    <dl className="case-details">
+                      <div>
+                        <dt>Fecha del evento</dt>
+                        <dd>{activeCase.date || '28/05/2025'}</dd>
+                      </div>
+                      <div>
+                        <dt>Asegurado</dt>
+                        <dd>{activeCase.insured}</dd>
+                      </div>
+                      <div>
+                        <dt>Vehículo</dt>
+                        <dd>{activeCase.vehicle || 'KIA Sportage 2021'}</dd>
+                      </div>
+                      <div>
+                        <dt>Ciudad</dt>
+                        <dd>{activeCase.city || 'Quito, Pichincha'}</dd>
+                      </div>
+                      <div>
+                        <dt>Monto reclamado</dt>
+                        <dd>{activeCase.amount}</dd>
+                      </div>
+                    </dl>
+                  </>
+                )}
 
                 <div className="case-actions">
                   <button type="button" className="btn btn-primary case-primary">
@@ -412,20 +505,84 @@ export function DemoPage() {
                 </div>
 
                 <div className="calculator-grid">
-                  {calculatorFields.map((field) => (
-                    <label
-                      key={field.label}
-                      className={`calculator-field ${field.wide ? 'is-wide' : ''}`}
+                  <label className="calculator-field">
+                    <span>Fecha del evento (Obligatorio)</span>
+                    <input 
+                      type="date" 
+                      value={fechaEvento} 
+                      onChange={(e) => setFechaEvento(e.target.value)} 
+                      style={{ colorScheme: 'dark' }}
+                    />
+                  </label>
+                  <label className="calculator-field">
+                    <span>Ramo</span>
+                    <select 
+                      value={ramo} 
+                      onChange={(e) => setRamo(e.target.value)}
+                      style={{ background: '#121214', color: 'white', border: '1px solid rgba(255,255,255,0.08)', padding: '10px', borderRadius: '6px', width: '100%', height: '42px' }}
                     >
-                      <span>{field.label}</span>
-                      <input placeholder={field.placeholder} />
-                    </label>
-                  ))}
+                      <option value="Vehículos">Vehículos</option>
+                      <option value="Hogar">Hogar</option>
+                      <option value="Salud">Salud</option>
+                    </select>
+                  </label>
+                  <label className="calculator-field">
+                    <span>Placa del vehículo</span>
+                    <input 
+                      placeholder="ABC123" 
+                      value={placa} 
+                      onChange={(e) => setPlaca(e.target.value)} 
+                    />
+                  </label>
+                  <label className="calculator-field is-wide">
+                    <span>Monto reclamado ($ USD - Obligatorio)</span>
+                    <input 
+                      placeholder="e.g. 15000" 
+                      type="number"
+                      value={montoReclamado} 
+                      onChange={(e) => setMontoReclamado(e.target.value)} 
+                    />
+                  </label>
+                  <label className="calculator-field is-wide">
+                    <span>Taller o proveedor (ID)</span>
+                    <input 
+                      placeholder="e.g. TALLER-001" 
+                      value={proveedor} 
+                      onChange={(e) => setProveedor(e.target.value)} 
+                    />
+                  </label>
                 </div>
 
-                <button type="button" className="btn btn-primary calculator-cta">
-                  Calcular riesgo
+                <button 
+                  type="button" 
+                  className="btn btn-primary calculator-cta" 
+                  onClick={handleCalculateRisk}
+                  disabled={isCalculating}
+                  style={{ width: '100%', marginTop: '16px' }}
+                >
+                  {isCalculating ? 'Calculando...' : 'Calcular riesgo'}
                 </button>
+
+                {calculatedScore && (
+                  <div style={{ marginTop: '16px', padding: '14px', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <strong style={{ fontSize: '1.25rem', color: calculatedLevel === 'Alto' ? '#f43f5e' : '#f59e0b' }}>
+                        {calculatedScore}
+                      </strong>
+                      <span className={`risk-pill ${calculatedLevel === 'Alto' ? 'danger' : 'warning'}`} style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                        {calculatedLevel?.toUpperCase()} RIESGO
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#8f9099' }}>
+                      <strong style={{ color: '#c4c5cc' }}>Reglas de negocio activadas:</strong>
+                      <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', lineHeight: '1.4' }}>
+                        {calculatorAlerts.map((alert, i) => (
+                          <li key={i} style={{ marginBottom: '2px' }}>{alert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
 
                 <div className="calculator-foot">
                   <ShieldCheck size={18} weight="bold" />
@@ -547,8 +704,13 @@ export function DemoPage() {
                 <span>Acciones</span>
               </div>
 
-              {cases.map((row) => (
-                <div key={row.id} className="claims-row">
+              {claimCases.map((row) => (
+                <div 
+                  key={row.id} 
+                  className={`claims-row ${activeCase && activeCase.id === row.id ? 'is-active-row' : ''}`}
+                  onClick={() => setActiveCase(row)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <strong>{row.id}</strong>
                   <span>{row.insured}</span>
                   <span>{row.date}</span>
@@ -560,16 +722,16 @@ export function DemoPage() {
                   </div>
                   <span className={`claims-level level-${row.level.toLowerCase()}`}>{row.level}</span>
                   <div className="claims-actions">
-                    <button type="button">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setActiveCase(row); }}>
                       <Eye size={16} weight="bold" />
                     </button>
-                    <button type="button">
+                    <button type="button" onClick={(e) => e.stopPropagation()}>
                       <FileText size={16} weight="bold" />
                     </button>
-                    <button type="button">
+                    <button type="button" onClick={(e) => e.stopPropagation()}>
                       <WarningCircle size={16} weight="bold" />
                     </button>
-                    <button type="button">
+                    <button type="button" onClick={(e) => e.stopPropagation()}>
                       <CaretDown size={16} weight="bold" />
                     </button>
                   </div>

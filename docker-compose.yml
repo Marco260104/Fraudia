@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # 1. Base de Datos PostgreSQL
   db:
     image: postgres:15-alpine
     container_name: fraudia_postgres_db
@@ -10,9 +11,54 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fraudia_network
+
+  # 2. Servidor API Web (Backend FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fraudia_backend_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-fraudia_db}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+    networks:
+      - fraudia_network
+
+  # 3. Aplicación Web React (Frontend Vite)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fraudia_frontend_web
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Evita sobreescribir los node_modules de Linux con los de Windows del host
+    depends_on:
+      - backend
+    networks:
+      - fraudia_network
 
 volumes:
   postgres_data:
+
+networks:
+  fraudia_network:
+    driver: bridge

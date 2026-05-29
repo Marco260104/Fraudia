@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
 # Configurar codificación utf-8 para la consola de Windows
@@ -157,11 +157,20 @@ def load_data():
     df_siniestros_db = df_siniestros_db.drop_duplicates(subset=["id_siniestro"])
 
     print("\n--- Procesando y normalizando Documentos ---")
+    # Filtrar filas vacías o nulas de raíz
+    df_documentos_clean = df_documentos.dropna(subset=["ID Documento", "ID Siniestro"]).copy()
+    
     df_documentos_db = pd.DataFrame()
-    df_documentos_db["id_documento"] = df_documentos["ID Documento"].astype(str).str.strip()
-    df_documentos_db["id_siniestro"] = df_documentos["ID Siniestro"].astype(str).str.strip()
-    df_documentos_db["tipo_documento"] = df_documentos["Tipo Documento"].astype(str).str.strip()
-    df_documentos_db["nombre_archivo_pdf"] = df_documentos["Nombre Archivo PDF"].fillna("").astype(str).str.strip()
+    df_documentos_db["id_documento"] = df_documentos_clean["ID Documento"].astype(str).str.strip()
+    df_documentos_db["id_siniestro"] = df_documentos_clean["ID Siniestro"].astype(str).str.strip()
+    df_documentos_db["tipo_documento"] = df_documentos_clean["Tipo Documento"].astype(str).str.strip()
+    df_documentos_db["nombre_archivo_pdf"] = df_documentos_clean["Nombre Archivo PDF"].fillna("").astype(str).str.strip()
+    
+    # Filtrar cualquier fila inválida 'nan'
+    df_documentos_db = df_documentos_db[
+        (df_documentos_db["id_documento"] != "nan") & 
+        (df_documentos_db["id_siniestro"] != "nan")
+    ]
     df_documentos_db = df_documentos_db.drop_duplicates(subset=["id_documento"])
 
     # 3. Cargar a la base de datos en orden lógico
@@ -174,7 +183,7 @@ def load_data():
         with open(schema_path, "r", encoding="utf-8") as sf:
             sql_commands = sf.read()
         with engine.begin() as conn:
-            conn.execute(sql_commands)
+            conn.execute(text(sql_commands))
         print("¡Estructura de tablas reiniciada exitosamente!")
     
     # Cargar asegurados

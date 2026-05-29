@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+
 import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
@@ -6,7 +6,6 @@ import {
   Bell,
   Building2,
   CarFront,
-  ChevronDown,
   Download,
   Filter,
   HelpCircle,
@@ -55,7 +54,7 @@ const sidebarItems: SidebarItem[] = [
   { label: 'Mapa de siniestros', icon: Map, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
   { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/demo', group: 'entities' },
+  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/demo', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/demo', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/demo', group: 'tools' },

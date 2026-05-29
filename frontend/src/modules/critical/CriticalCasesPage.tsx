@@ -26,7 +26,7 @@ const mainMenu = [
 
 const entityMenu = [
   { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
-  { label: 'Proveedores', icon: UsersThree, href: '/demo' },
+  { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
   { label: 'Asegurados', icon: UserCircle, href: '/demo' },
 ]
 

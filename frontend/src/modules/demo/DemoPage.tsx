@@ -143,6 +143,12 @@ export function DemoPage() {
   const [kpiData, setKpiData] = useState(kpis)
   const [claimCases, setClaimCases] = useState(cases)
   const [activeCase, setActiveCase] = useState<(typeof cases)[number]>(cases[0])
+  const [pins, setPins] = useState(mapPins)
+  const [narrativeData, setNarrativeData] = useState({
+    original_text: "El vehiculo fue impactado mientras estaba estacionado en la via publica por un tercero que se dio a la fuga...",
+    score: "89%",
+    similar_list: similarClaims
+  })
 
   // Estados de la calculadora de riesgo
   const [fechaEvento, setFechaEvento] = useState('')
@@ -184,6 +190,26 @@ export function DemoPage() {
         }
       })
       .catch(err => console.log('Usando fallback para Casos (Servidor API apagado):', err))
+
+    // 3. Cargar pines del mapa de la base de datos
+    fetch('http://localhost:8000/api/map-claims')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setPins(data)
+        }
+      })
+      .catch(err => console.log('Usando fallback para Pines del Mapa (Servidor API apagado):', err))
+
+    // 4. Cargar narrativas similares de la base de datos
+    fetch('http://localhost:8000/api/narratives/similar')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setNarrativeData(data)
+        }
+      })
+      .catch(err => console.log('Usando fallback para Narrativas Similares (Servidor API apagado):', err))
   }, [])
 
   const handleCalculateRisk = () => {
@@ -614,9 +640,9 @@ export function DemoPage() {
                 <div className="map-heat map-heat-orange" />
                 <div className="map-heat map-heat-red" />
                 <div className="map-heat map-heat-blue" />
-                {mapPins.map((pin) => (
+                {pins.map((pin, idx) => (
                   <span
-                    key={pin.label}
+                    key={idx}
                     className={`map-pin tone-${pin.tone}`}
                     style={{ left: pin.x, top: pin.y } as CSSProperties}
                   >
@@ -642,11 +668,10 @@ export function DemoPage() {
 
               <div className="narrative-card">
                 <p>
-                  El vehiculo fue impactado mientras estaba estacionado en la via publica por un tercero que se dio a
-                  la fuga...
+                  {narrativeData.original_text}
                 </p>
                 <strong>
-                  89%
+                  {narrativeData.score}
                   <span>Similitud</span>
                 </strong>
               </div>
@@ -654,7 +679,7 @@ export function DemoPage() {
               <div className="similar-grid">
                 <div className="similar-list">
                   <h3>Otros siniestros con narrativa similar</h3>
-                  {similarClaims.map((claim) => (
+                  {narrativeData.similar_list.map((claim) => (
                     <div key={claim.id} className="similar-row">
                       <span>{claim.id}</span>
                       <strong>{claim.score}</strong>

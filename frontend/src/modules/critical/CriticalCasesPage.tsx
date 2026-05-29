@@ -20,8 +20,8 @@ const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo' },
   { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', active: true, badge: '18' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
-  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/demo' },
-  { label: 'Narrativas similares', icon: ShieldCheck, href: '/demo' },
+  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/mapa-siniestros' },
+  { label: 'Narrativas similares', icon: ShieldCheck, href: '/narrativas-similares' },
 ]
 
 const entityMenu = [
@@ -52,6 +52,10 @@ const criticalCases = [
     insured: 'Carlos Méndez',
     risk: 'CRÍTICO',
     alert: 'Narrativa duplicada',
+    provider: 'Taller Express',
+    city: 'Medellín, Antioquia',
+    vehicle: 'KIA Sportage 2021',
+    date: '28/05/2025',
     amount: '$28,450',
     score: '96%',
     state: 'Escalado',
@@ -61,6 +65,10 @@ const criticalCases = [
     insured: 'Ana Rodríguez',
     risk: 'ALTO',
     alert: 'Taller sospechoso',
+    provider: 'AutoMecánica L&R',
+    city: 'Envigado, Antioquia',
+    vehicle: 'Mazda CX-5 2020',
+    date: '28/05/2025',
     amount: '$15,230',
     score: '89%',
     state: 'Investigación IA',
@@ -70,6 +78,10 @@ const criticalCases = [
     insured: 'Pedro Gómez',
     risk: 'ALTO',
     alert: 'Patrón recurrente',
+    provider: 'Car Center Pro',
+    city: 'Bello, Antioquia',
+    vehicle: 'Hyundai Tucson 2022',
+    date: '27/05/2025',
     amount: '$9,890',
     score: '82%',
     state: 'En revisión',
@@ -79,6 +91,10 @@ const criticalCases = [
     insured: 'Laura Torres',
     risk: 'MEDIO',
     alert: 'Red colaborativa',
+    provider: 'Taller La 80',
+    city: 'Itagüí, Antioquia',
+    vehicle: 'Chevrolet Spark 2019',
+    date: '26/05/2025',
     amount: '$6,420',
     score: '71%',
     state: 'Investigación IA',
@@ -88,6 +104,10 @@ const criticalCases = [
     insured: 'Miguel Ramírez',
     risk: 'ALTO',
     alert: 'Geolocalización anómala',
+    provider: 'MotorFix',
+    city: 'Sabaneta, Antioquia',
+    vehicle: 'Nissan Versa 2021',
+    date: '26/05/2025',
     amount: '$3,210',
     score: '78%',
     state: 'Escalado',
@@ -97,6 +117,10 @@ const criticalCases = [
     insured: 'Jorge Velásquez',
     risk: 'MEDIO',
     alert: 'Narrativa duplicada',
+    provider: 'Taller Express',
+    city: 'Medellín, Antioquia',
+    vehicle: 'Renault Duster 2020',
+    date: '25/05/2025',
     amount: '$7,890',
     score: '65%',
     state: 'En revisión',
@@ -106,6 +130,10 @@ const criticalCases = [
     insured: 'Vanessa Ortiz',
     risk: 'ALTO',
     alert: 'Taller sospechoso',
+    provider: 'AutoMecánica L&R',
+    city: 'Medellín, Antioquia',
+    vehicle: 'Toyota Corolla 2022',
+    date: '25/05/2025',
     amount: '$12,300',
     score: '87%',
     state: 'Investigación IA',
@@ -115,6 +143,10 @@ const criticalCases = [
     insured: 'Ricardo López',
     risk: 'CRÍTICO',
     alert: 'Múltiples reclamos',
+    provider: 'Taller Express',
+    city: 'Itagüí, Antioquia',
+    vehicle: 'Kia Picanto 2018',
+    date: '24/05/2025',
     amount: '$31,450',
     score: '94%',
     state: 'Bloqueado',
@@ -156,7 +188,7 @@ function toClassName(value: string) {
 export function CriticalCasesPage() {
   const [cases, setCases] = useState(criticalCases)
   const [kpiData, setKpiData] = useState(overviewCards)
-  const [activeCase, setActiveCase] = useState<any>(criticalCases[0])
+  const [activeCase, setActiveCase] = useState<(typeof criticalCases)[number]>(criticalCases[0])
 
   useEffect(() => {
     // 1. Cargar KPIs reales de la base de datos

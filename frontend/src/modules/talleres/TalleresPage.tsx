@@ -1,42 +1,43 @@
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
   ArrowRight,
   Bell,
-  Building2,
+  Buildings,
   CalendarDays,
-  CarFront,
+  Car,
   CheckCircle2,
-  ChevronDown,
+  CaretDown,
   FileText,
   Fingerprint,
   Gauge,
   HeartPulse,
-  Home,
+  House,
   MapPin,
-  Search,
+  MagnifyingGlass,
   Shield,
-  Sparkles,
+  Sparkle,
   Target,
-  TrendingUp,
+  TrendUp,
   UserRound,
   Users,
   Wrench,
   ShieldCheck
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts'
 
-type SidebarItem = { label: string; icon: typeof Home; href: string; badge?: string; group: 'main' | 'entities' | 'tools' }
+type SidebarItem = { label: string; icon: typeof House; href: string; badge?: string; group: 'main' | 'entities' | 'tools' }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: Home, href: '/demo', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
   { label: 'Casos críticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
+  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/demo', group: 'tools' },
@@ -48,7 +49,7 @@ const kpis = [
   { title: 'Talleres analizados', value: '428', delta: '↑ 14% vs ayer', tone: 'blue', icon: Wrench },
   { title: 'Talleres de riesgo', value: '63', delta: '↑ 9% vs semana', tone: 'red', icon: Gauge },
   { title: 'Relación con casos', value: '92', delta: '↑ 21% vs ayer', tone: 'indigo', icon: Users },
-  { title: 'Alertas técnicas', value: '31', delta: '↑ 4% vs ayer', tone: 'amber', icon: TrendingUp },
+  { title: 'Alertas técnicas', value: '31', delta: '↑ 4% vs ayer', tone: 'amber', icon: TrendUp },
 ]
 
 const workshopData = [
@@ -149,53 +150,11 @@ export default function TalleresPage() {
         @media (max-width:1024px){.shell{grid-template-columns:1fr}.sidebar{min-height:auto}.hero-main{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr}}
       `}</style>
       <div className="shell">
-        <aside className="sidebar">
-          <Link to="/demo" className="brand">
-            <span className="brand-mark"><Shield size={18} strokeWidth={2.5} /></span>
-            <span><strong>fraudia</strong><span>Detección de fraude en siniestros</span></span>
-          </Link>
-          <div className="group">
-            <p className="label">Menú principal</p>
-            {sidebarItems.filter((i) => i.group === 'main').map((item) => {
-              const Icon = item.icon
-              return <Link key={item.label} to={item.href} className={`item ${location.pathname === item.href ? 'active' : ''}`}><Icon size={18} /><span>{item.label}</span>{item.badge ? <span className="badge">{item.badge}</span> : null}</Link>
-            })}
-          </div>
-          <div className="group">
-            <p className="label">Entidades</p>
-            {sidebarItems.filter((i) => i.group === 'entities').map((item) => {
-              const Icon = item.icon
-              const active = item.href === '/talleres' && location.pathname === '/talleres'
-              return <Link key={item.label} to={item.href} className={`item ${active ? 'active' : ''}`}><Icon size={18} /><span>{item.label}</span></Link>
-            })}
-          </div>
-          <div className="group">
-            <p className="label">Herramientas</p>
-            {sidebarItems.filter((i) => i.group === 'tools').map((item) => {
-              const Icon = item.icon
-              return <Link key={item.label} to={item.href} className="item"><Icon size={18} /><span>{item.label}</span></Link>
-            })}
-          </div>
-          <div className="footer">
-            <section className="assistant">
-              <div className="assistant-top"><Sparkles className="sparkle" size={18} /><span>IA Assistant</span></div>
-              <p>Consulta trazabilidad, relaciones y señales de riesgo de talleres.</p>
-              <button className="btn" type="button" style={{ width: '100%', justifyContent: 'space-between' }}><span>Abrir chat</span><ArrowRight size={16} /></button>
-            </section>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/talleres" />
         <div className="content">
           <header className="topbar">
             <div style={{ width: 220 }} />
-            <div className="search"><Search className="i" size={16} /><input placeholder="Buscar taller, ciudad, proveedor..." /><span className="k">⌘ K</span></div>
+            <div className="search"><MagnifyingGlass className="i" size={16} /><input placeholder="Buscar taller, ciudad, proveedor..." /><span className="k">⌘ K</span></div>
             <div className="top-right">
               <button className="chip" type="button"><Bell size={18} /><span className="badge-dot">3</span></button>
               <button className="chip" type="button"><HeartPulse size={18} /></button>
@@ -206,12 +165,12 @@ export default function TalleresPage() {
           <div className="scroll">
             <div className="head">
               <div><h1>Inteligencia de talleres</h1><p>Analítica operativa, trazabilidad y señales de confianza para red de reparación</p></div>
-              <div className="head-actions"><span className="rt"><span className="pulse" />Monitoreo activo</span><button className="btn" type="button"><ChevronDown size={16} />Filtros</button><button className="btn primary" type="button">Exportar reporte</button></div>
+              <div className="head-actions"><span className="rt"><span className="pulse" />Monitoreo activo</span><button className="btn" type="button"><CaretDown size={16} />Filtros</button><button className="btn primary" type="button">Exportar reporte</button></div>
             </div>
             <section className="hero">
               <div className="hero-main card">
                 <div className="avatar-shell"><div className="orb a" /><div className="orb b" /><div className="glass"><div className="init">TX</div></div></div>
-                <div className="hero-copy"><span className="rt"><CheckCircle2 size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias técnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><CalendarDays size={14} />Operativo desde 2019</span><span><CarFront size={14} />24 vehículos vinculados</span><span><UserRound size={14} />31 asegurados recurrentes</span></div></div>
+                <div className="hero-copy"><span className="rt"><CheckCircle2 size={14} />Red operativa verificada</span><h2>Taller Express</h2><p>Centro operativo monitoreado por coincidencias técnicas, tiempos y siniestros vinculados.</p><div className="meta"><span><CalendarDays size={14} />Operativo desde 2019</span><span><Car size={14} />24 vehículos vinculados</span><span><UserRound size={14} />31 asegurados recurrentes</span></div></div>
               </div>
               <div className="trust"><div className="label">Operational trust</div><div className="score"><div className="n">91</div><div className="bar"><span style={{ height: '91%' }} /></div></div><div className="tag">RIESGO CONTENIDO</div><p>Patrón estable con picos de revisión en ventanas cortas.</p></div>
             </section>

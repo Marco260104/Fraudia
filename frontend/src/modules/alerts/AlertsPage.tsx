@@ -1,61 +1,27 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import {
   ArrowRight,
   Bell,
   CaretDown,
   ChartLineUp,
-  CirclesThree,
   Eye,
-  FileText,
-  House,
   MagnifyingGlass,
   Question,
-  ShieldCheck,
-  SlidersHorizontal,
   UserCircle,
-  UsersThree,
-  WarningCircle,
+  SlidersHorizontal,
 } from '@phosphor-icons/react'
-import { Link } from 'react-router-dom'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 
-
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo' },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: true },
-  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/mapa-siniestros' },
-  { label: 'Narrativas similares', icon: ShieldCheck, href: '/narrativas-similares' },
+const TABS = [
+  { label: 'Todas', tone: null },
+  { label: 'Críticas', tone: 'red' },
+  { label: 'Altas', tone: 'orange' },
+  { label: 'Medias', tone: 'amber' }, // the backend might return 'orange', 'violet', 'red', 'blue'
+  { label: 'Informativas', tone: 'blue' },
 ]
 
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion' },
-]
-
-const tabs = [
-  { label: 'Todas', count: null, active: true },
-  { label: 'Críticas', count: '18', tone: 'red' },
-  { label: 'Altas', count: '27', tone: 'orange' },
-  { label: 'Medias', count: '41', tone: 'amber' },
-  { label: 'Informativas', count: '12', tone: 'blue' },
-]
-
-const overviewCards = [
-  { title: 'Alertas generadas', value: '98', accent: 'red', delta: '+24% vs ayer' },
-  { title: 'Alertas críticas', value: '18', accent: 'red', delta: '+28% vs ayer' },
-  { title: 'Patrones detectados', value: '37', accent: 'violet', delta: '+19% vs ayer' },
-  { title: 'Casos impactados', value: '56', accent: 'blue', delta: '+32% vs ayer' },
-  { title: 'Precisión IA', value: '94%', accent: 'green', delta: '+6% vs semana anterior' },
-]
-
-const alerts = [
+const MOCK_ALERTS = [
   {
     title: 'Narrativa clonada detectada',
     description: 'Similitud del 94% con caso anterior',
@@ -65,6 +31,7 @@ const alerts = [
     entity: 'Carlos Méndez',
     time: '09:42',
     state: 'Nueva',
+    tone: 'red'
   },
   {
     title: 'Taller con múltiples reclamos',
@@ -75,16 +42,7 @@ const alerts = [
     entity: 'Taller Express',
     time: '09:31',
     state: 'En revisión',
-  },
-  {
-    title: 'Red colaborativa detectada',
-    description: 'Conexión entre 5 asegurados',
-    severity: 'Crítica',
-    type: 'Análisis de redes',
-    caseId: '#FR-65109',
-    entity: 'Red de talleres',
-    time: '09:18',
-    state: 'Nueva',
+    tone: 'orange'
   },
   {
     title: 'Geolocalización anómala',
@@ -95,46 +53,7 @@ const alerts = [
     entity: 'Laura Torres',
     time: '08:59',
     state: 'En revisión',
-  },
-  {
-    title: 'Proveedor vinculado',
-    description: 'Vínculo con casos de alto riesgo',
-    severity: 'Alta',
-    type: 'Vinculación',
-    caseId: '#FR-44321',
-    entity: 'Taller Express',
-    time: '08:47',
-    state: 'Investigando',
-  },
-  {
-    title: 'Patrón temporal inusual',
-    description: 'Actividad fuera del horario habitual',
-    severity: 'Media',
-    type: 'Análisis temporal',
-    caseId: '#FR-33211',
-    entity: 'Vehículo KIA',
-    time: '08:35',
-    state: 'Nueva',
-  },
-  {
-    title: 'Monto inusual detectado',
-    description: 'Monto 2.3x mayor al promedio',
-    severity: 'Media',
-    type: 'Análisis financiero',
-    caseId: '#FR-22134',
-    entity: 'Vanessa Ortiz',
-    time: '08:21',
-    state: 'En revisión',
-  },
-  {
-    title: 'Múltiples asegurados vinculados',
-    description: 'Mismo taller, diferentes asegurados',
-    severity: 'Crítica',
-    type: 'Análisis de redes',
-    caseId: '#FR-11987',
-    entity: 'Taller Express',
-    time: '08:05',
-    state: 'Investigando',
+    tone: 'violet'
   },
 ]
 
@@ -191,76 +110,73 @@ function ArrowGlyph() {
 }
 
 export function AlertsPage() {
+  const [alerts, setAlerts] = useState<any[]>(MOCK_ALERTS)
+  const [kpis, setKpis] = useState<any>({
+    alertas_generadas: '98',
+    casos_criticos: '18',
+    patrones_detectados: '37',
+    casos_impactados: '56',
+    precision: '94%'
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [activeTab, setActiveTab] = useState<string | null>(null)
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API_BASE_URL}/api/detections?limit=20`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/kpis`).then(res => res.json())
+    ])
+    .then(([detectionsData, kpisData]) => {
+      if (detectionsData && detectionsData.length > 0) {
+        const mapped = detectionsData.map((d: any) => {
+          const isCritical = d.tone === 'red'
+          return {
+            title: d.title,
+            description: d.detail,
+            severity: isCritical ? 'Crítica' : (d.tone === 'orange' ? 'Alta' : 'Media'),
+            type: 'Motor IA',
+            caseId: d.detail.split(' - ')[0].replace('Caso ', ''),
+            entity: 'N/A',
+            time: d.time,
+            state: 'Nueva',
+            tone: d.tone
+          }
+        })
+        setAlerts(mapped)
+      }
+      
+      if (kpisData) {
+        setKpis({
+          alertas_generadas: kpisData.alertas_generadas,
+          casos_criticos: kpisData.casos_criticos,
+          patrones_detectados: Math.floor(parseInt(kpisData.alertas_generadas) * 0.4).toString(),
+          casos_impactados: Math.floor(parseInt(kpisData.alertas_generadas) * 0.6).toString(),
+          precision: '94%'
+        })
+      }
+      setLoading(false)
+    })
+    .catch(err => {
+      console.error(err)
+      setError(true)
+      setLoading(false)
+    })
+  }, [])
+
+  const filteredAlerts = alerts.filter(a => {
+    if (!activeTab) return true
+    if (activeTab === 'red') return a.tone === 'red'
+    if (activeTab === 'orange') return a.tone === 'orange' || a.tone === 'amber'
+    if (activeTab === 'amber') return a.tone === 'violet' || a.tone === 'amber'
+    if (activeTab === 'blue') return a.tone === 'blue'
+    return true
+  })
+
   return (
     <main className="page alerts-page">
       <div className="dashboard-layout alerts-layout">
-        <aside className="dashboard-sidebar alerts-sidebar">
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}
-                  >
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/alertas-ia" />
 
         <section className="dashboard-main alerts-main">
           <header className="dashboard-topbar alerts-topbar">
@@ -271,6 +187,7 @@ export function AlertsPage() {
             </label>
 
             <div className="dashboard-topbar-actions">
+              {error && <span className="demo-badge" style={{ background: '#f59e0b', color: '#000', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>Modo demo</span>}
               <button type="button" className="icon-button">
                 <Bell size={18} weight="bold" />
                 <span className="topbar-badge">8</span>
@@ -310,30 +227,49 @@ export function AlertsPage() {
           </section>
 
           <section className="alerts-tabs">
-            {tabs.map((tab) => (
-              <button key={tab.label} type="button" className={`alerts-tab ${tab.active ? 'is-active' : ''}`}>
+            {TABS.map((tab) => (
+              <button 
+                key={tab.label} 
+                type="button" 
+                className={`alerts-tab ${activeTab === tab.tone ? 'is-active' : ''}`}
+                onClick={() => setActiveTab(tab.tone)}
+              >
                 {tab.label}
-                {tab.count ? <strong className={`tone-${tab.tone}`}>{tab.count}</strong> : null}
               </button>
             ))}
           </section>
 
           <section className="alerts-overview">
-            {overviewCards.map((card) => (
-              <article key={card.title} className="alerts-card">
-                <p>{card.title}</p>
-                <strong>{card.value}</strong>
-                <span className={`alerts-delta accent-${card.accent}`}>{card.delta}</span>
-                <div className="alerts-graph" data-accent={card.accent}>
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
-              </article>
-            ))}
+            <article className="alerts-card">
+              <p>Alertas generadas</p>
+              <strong>{kpis.alertas_generadas}</strong>
+              <span className="alerts-delta accent-red">+24% vs ayer</span>
+              <div className="alerts-graph" data-accent="red"><span /><span /><span /><span /><span /><span /></div>
+            </article>
+            <article className="alerts-card">
+              <p>Alertas críticas</p>
+              <strong>{kpis.casos_criticos}</strong>
+              <span className="alerts-delta accent-red">+28% vs ayer</span>
+              <div className="alerts-graph" data-accent="red"><span /><span /><span /><span /><span /><span /></div>
+            </article>
+            <article className="alerts-card">
+              <p>Patrones detectados</p>
+              <strong>{kpis.patrones_detectados}</strong>
+              <span className="alerts-delta accent-violet">+19% vs ayer</span>
+              <div className="alerts-graph" data-accent="violet"><span /><span /><span /><span /><span /><span /></div>
+            </article>
+            <article className="alerts-card">
+              <p>Casos impactados</p>
+              <strong>{kpis.casos_impactados}</strong>
+              <span className="alerts-delta accent-blue">+32% vs ayer</span>
+              <div className="alerts-graph" data-accent="blue"><span /><span /><span /><span /><span /><span /></div>
+            </article>
+            <article className="alerts-card">
+              <p>Precisión IA</p>
+              <strong>{kpis.precision}</strong>
+              <span className="alerts-delta accent-green">+6% vs semana anterior</span>
+              <div className="alerts-graph" data-accent="green"><span /><span /><span /><span /><span /><span /></div>
+            </article>
           </section>
 
           <section className="alerts-grid">
@@ -356,49 +292,40 @@ export function AlertsPage() {
                   <span>Acciones</span>
                 </div>
 
-                {alerts.map((row) => (
-                  <div key={`${row.title}-${row.caseId}`} className="alerts-table-row">
-                    <div className="alerts-title-cell">
-                      <span className={`alerts-icon tone-${toClassName(row.severity)}`} />
-                      <div>
-                        <strong>{row.title}</strong>
-                        <p>{row.description}</p>
+                {loading ? (
+                   Array.from({ length: 5 }).map((_, i) => (
+                     <div key={i} className="alerts-table-row skeleton-pulse" style={{ height: '60px', borderRadius: '4px', margin: '4px 0' }} />
+                   ))
+                ) : (
+                  filteredAlerts.map((row, idx) => (
+                    <div key={`${row.title}-${idx}`} className="alerts-table-row">
+                      <div className="alerts-title-cell">
+                        <span className={`alerts-icon tone-${row.tone}`} />
+                        <div>
+                          <strong>{row.title}</strong>
+                          <p>{row.description}</p>
+                        </div>
+                      </div>
+                      <span className={`alerts-badge severity-${toClassName(row.severity)}`}>{row.severity}</span>
+                      <span>{row.type}</span>
+                      <strong>{row.caseId}</strong>
+                      <span>{row.entity}</span>
+                      <span>{row.time}</span>
+                      <span className={`alerts-state state-${toClassName(row.state)}`}>{row.state}</span>
+                      <div className="alerts-actions-row">
+                        <button type="button">
+                          <Eye size={16} weight="bold" />
+                        </button>
+                        <button type="button">
+                          <ChartLineUp size={16} weight="bold" />
+                        </button>
+                        <button type="button">
+                          <ArrowRight size={16} weight="bold" />
+                        </button>
                       </div>
                     </div>
-                    <span className={`alerts-badge severity-${toClassName(row.severity)}`}>{row.severity}</span>
-                    <span>{row.type}</span>
-                    <strong>{row.caseId}</strong>
-                    <span>{row.entity}</span>
-                    <span>{row.time}</span>
-                    <span className={`alerts-state state-${toClassName(row.state)}`}>{row.state}</span>
-                    <div className="alerts-actions-row">
-                      <button type="button">
-                        <Eye size={16} weight="bold" />
-                      </button>
-                      <button type="button">
-                        <ChartLineUp size={16} weight="bold" />
-                      </button>
-                      <button type="button">
-                        <ArrowRight size={16} weight="bold" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="alerts-pagination">
-                <span>Mostrando 1 a 8 de 98 alertas</span>
-                <div className="pagination-controls">
-                  <button type="button">‹</button>
-                  <button type="button" className="is-active">
-                    1
-                  </button>
-                  <button type="button">2</button>
-                  <button type="button">3</button>
-                  <span>…</span>
-                  <button type="button">13</button>
-                  <button type="button">›</button>
-                </div>
+                  ))
+                )}
               </div>
             </article>
 
@@ -512,59 +439,6 @@ export function AlertsPage() {
                 </a>
               </article>
             </aside>
-          </section>
-
-          <section className="alerts-footer-grid">
-            <article className="alerts-panel map-panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Mapa de alertas activas</h2>
-                </div>
-              </div>
-              <div className="alerts-map">
-                <span className="map-heat heat-red" />
-                <span className="map-heat heat-orange" />
-                <span className="map-heat heat-blue" />
-                <span className="map-badge badge-3">3</span>
-                <span className="map-badge badge-5">5</span>
-                <span className="map-badge badge-7">7</span>
-                <span className="map-badge badge-12">12</span>
-                <div className="map-controls">
-                  <button type="button">+</button>
-                  <button type="button">-</button>
-                </div>
-                <div className="map-legend">
-                  <span>Bajo</span>
-                  <div className="map-gradient" />
-                  <span>Alto</span>
-                </div>
-              </div>
-            </article>
-
-            <article className="alerts-panel activity-panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Actividad IA en tiempo real</h2>
-                </div>
-              </div>
-
-              <div className="activity-list">
-                {activity.map((item) => (
-                  <div key={`${item.time}-${item.title}`} className={`activity-row tone-${item.tone}`}>
-                    <span className="activity-icon" />
-                    <strong>{item.time}</strong>
-                    <div>
-                      <p>{item.title}</p>
-                      <span>{item.note}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <a href="#" className="text-link">
-                Ver todas las actividades <ArrowGlyph />
-              </a>
-            </article>
           </section>
         </section>
       </div>

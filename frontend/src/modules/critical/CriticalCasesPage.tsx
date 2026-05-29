@@ -15,30 +15,11 @@ import {
   UserCircle,
   UsersThree,
   WarningCircle,
+  X
 } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
-
-
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo' },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', active: true, badge: '18' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
-  { label: 'Mapa de siniestros', icon: CirclesThree, href: '/mapa-siniestros' },
-  { label: 'Narrativas similares', icon: ShieldCheck, href: '/narrativas-similares' },
-]
-
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos' },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
-  { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ChartLineUp, href: '/calculadora' },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes' },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion' },
-]
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 
 const overviewCards = [
   { title: 'Casos críticos', value: '18', accent: 'red', delta: '+12% vs ayer' },
@@ -57,7 +38,7 @@ const criticalCases = [
     risk: 'CRÍTICO',
     alert: 'Narrativa duplicada',
     provider: 'Taller Express',
-    city: 'Medellín, Antioquia',
+    city: 'Guayaquil, Guayas',
     vehicle: 'KIA Sportage 2021',
     date: '28/05/2025',
     amount: '$28,450',
@@ -70,90 +51,12 @@ const criticalCases = [
     risk: 'ALTO',
     alert: 'Taller sospechoso',
     provider: 'AutoMecánica L&R',
-    city: 'Envigado, Antioquia',
+    city: 'Quito, Pichincha',
     vehicle: 'Mazda CX-5 2020',
     date: '28/05/2025',
     amount: '$15,230',
     score: '89%',
     state: 'Investigación IA',
-  },
-  {
-    caseId: '#FR-65109',
-    insured: 'Pedro Gómez',
-    risk: 'ALTO',
-    alert: 'Patrón recurrente',
-    provider: 'Car Center Pro',
-    city: 'Bello, Antioquia',
-    vehicle: 'Hyundai Tucson 2022',
-    date: '27/05/2025',
-    amount: '$9,890',
-    score: '82%',
-    state: 'En revisión',
-  },
-  {
-    caseId: '#FR-55867',
-    insured: 'Laura Torres',
-    risk: 'MEDIO',
-    alert: 'Red colaborativa',
-    provider: 'Taller La 80',
-    city: 'Itagüí, Antioquia',
-    vehicle: 'Chevrolet Spark 2019',
-    date: '26/05/2025',
-    amount: '$6,420',
-    score: '71%',
-    state: 'Investigación IA',
-  },
-  {
-    caseId: '#FR-44321',
-    insured: 'Miguel Ramírez',
-    risk: 'ALTO',
-    alert: 'Geolocalización anómala',
-    provider: 'MotorFix',
-    city: 'Sabaneta, Antioquia',
-    vehicle: 'Nissan Versa 2021',
-    date: '26/05/2025',
-    amount: '$3,210',
-    score: '78%',
-    state: 'Escalado',
-  },
-  {
-    caseId: '#FR-33211',
-    insured: 'Jorge Velásquez',
-    risk: 'MEDIO',
-    alert: 'Narrativa duplicada',
-    provider: 'Taller Express',
-    city: 'Medellín, Antioquia',
-    vehicle: 'Renault Duster 2020',
-    date: '25/05/2025',
-    amount: '$7,890',
-    score: '65%',
-    state: 'En revisión',
-  },
-  {
-    caseId: '#FR-22134',
-    insured: 'Vanessa Ortiz',
-    risk: 'ALTO',
-    alert: 'Taller sospechoso',
-    provider: 'AutoMecánica L&R',
-    city: 'Medellín, Antioquia',
-    vehicle: 'Toyota Corolla 2022',
-    date: '25/05/2025',
-    amount: '$12,300',
-    score: '87%',
-    state: 'Investigación IA',
-  },
-  {
-    caseId: '#FR-11987',
-    insured: 'Ricardo López',
-    risk: 'CRÍTICO',
-    alert: 'Múltiples reclamos',
-    provider: 'Taller Express',
-    city: 'Itagüí, Antioquia',
-    vehicle: 'Kia Picanto 2018',
-    date: '24/05/2025',
-    amount: '$31,450',
-    score: '94%',
-    state: 'Bloqueado',
   },
 ]
 
@@ -193,9 +96,6 @@ export function CriticalCasesPage() {
   const defaultDetections = [
     { time: '09:42', title: 'Nueva coincidencia narrativa detectada', detail: 'Caso #FR-87291 - Similitud 94%', tone: 'red' },
     { time: '09:44', title: 'Taller vinculado a 4 reclamos', detail: 'Taller Express - Red detectada', tone: 'orange' },
-    { time: '09:45', title: 'Riesgo elevado automáticamente', detail: 'Caso #FR-76123 - Score 89%', tone: 'red' },
-    { time: '09:47', title: 'Geolocalización sospechosa identificada', detail: 'Caso #FR-65109 - Patrón inusual', tone: 'orange' },
-    { time: '09:48', title: 'Caso escalado por IA', detail: 'Caso #FR-87291 - Escalado automático', tone: 'violet' },
   ]
 
   const defaultMapPins = [
@@ -207,14 +107,19 @@ export function CriticalCasesPage() {
 
   const [cases, setCases] = useState(criticalCases)
   const [kpiData, setKpiData] = useState(overviewCards)
-  const [activeCase, setActiveCase] = useState<(typeof criticalCases)[number]>(criticalCases[0])
+  const [activeCase, setActiveCase] = useState<any>(null)
   const [detections, setDetections] = useState(defaultDetections)
   const [pins, setPins] = useState(defaultMapPins)
+  
+  // DRAWER STATE
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedCase, setSelectedCase] = useState<any>(null)
   const [timelineData, setTimelineData] = useState(timeline)
+  const [feedbackSending, setFeedbackSending] = useState(false)
+  const [feedbackSent, setFeedbackSent] = useState(false)
 
   useEffect(() => {
-    // 1. Cargar KPIs reales de la base de datos
-    fetch('http://localhost:8000/api/kpis')
+    fetch(`${API_BASE_URL}/api/kpis`)
       .then(res => res.json())
       .then(data => {
         if (data) {
@@ -227,10 +132,9 @@ export function CriticalCasesPage() {
           ])
         }
       })
-      .catch(err => console.log('Usando fallback para KPIs (Servidor API apagado):', err))
+      .catch(err => console.log('Usando fallback para KPIs:', err))
 
-    // 2. Cargar casos críticos reales de la base de datos
-    fetch('http://localhost:8000/api/cases/critical')
+    fetch(`${API_BASE_URL}/api/cases/critical?limit=10`)
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) {
@@ -238,34 +142,29 @@ export function CriticalCasesPage() {
           setActiveCase(data[0])
         }
       })
-      .catch(err => console.log('Usando fallback para Casos Críticos (Servidor API apagado):', err))
+      .catch(err => console.log('Usando fallback para Casos Críticos:', err))
 
-    // 3. Cargar detecciones en tiempo real de la base de datos
-    fetch('http://localhost:8000/api/detections')
+    fetch(`${API_BASE_URL}/api/detections`)
       .then(res => res.json())
       .then(data => {
-        if (data && data.length > 0) {
-          setDetections(data)
-        }
+        if (data && data.length > 0) setDetections(data)
       })
-      .catch(err => console.log('Usando fallback para Detecciones (Servidor API apagado):', err))
+      .catch(err => console.log('Usando fallback para Detecciones:', err))
 
-    // 4. Cargar pines del mapa de la base de datos
-    fetch('http://localhost:8000/api/map-claims')
+    fetch(`${API_BASE_URL}/api/map-claims`)
       .then(res => res.json())
       .then(data => {
-        if (data && data.length > 0) {
-          setPins(data)
-        }
+        if (data && data.length > 0) setPins(data)
       })
-      .catch(err => console.log('Usando fallback para Pines del Mapa (Servidor API apagado):', err))
+      .catch(err => console.log('Usando fallback para Pines del Mapa:', err))
   }, [])
 
-  // 5. Escuchar cambios de activeCase para cargar su timeline dinámico
   useEffect(() => {
-    if (!activeCase) return
+    if (!selectedCase) return
+    setFeedbackSent(false)
+    setTimelineData(timeline) // reset while fetching
 
-    fetch(`http://localhost:8000/api/cases/${activeCase.caseId}/timeline`)
+    fetch(`${API_BASE_URL}/api/cases/${selectedCase.caseId}/timeline`)
       .then(res => res.json())
       .then(data => {
         if (data && data.length > 0) {
@@ -273,87 +172,52 @@ export function CriticalCasesPage() {
         }
       })
       .catch(err => {
-        console.log(`Usando fallback de timeline para ${activeCase.caseId}:`, err)
+        console.log(`Usando fallback de timeline para ${selectedCase.caseId}:`, err)
         setTimelineData([
           { time: '09:14', label: 'Reclamo generado', tone: 'green' },
           { time: '09:15', label: 'Validación IA iniciada', tone: 'blue' },
-          { time: '09:16', label: activeCase.risk === 'CRÍTICO' ? 'Riesgo Crítico Detectado' : 'Validación completada', tone: activeCase.risk === 'CRÍTICO' ? 'red' : 'orange' },
-          { time: '09:17', label: activeCase.alert, tone: 'red' },
-          { time: '09:18', label: activeCase.state, tone: 'violet' },
+          { time: '09:16', label: selectedCase.risk === 'CRÍTICO' ? 'Riesgo Crítico Detectado' : 'Validación completada', tone: selectedCase.risk === 'CRÍTICO' ? 'red' : 'orange' },
+          { time: '09:17', label: selectedCase.alert, tone: 'red' },
+          { time: '09:18', label: selectedCase.state, tone: 'violet' },
         ])
       })
-  }, [activeCase])
+  }, [selectedCase])
+
+  const openDrawer = (caseData: any) => {
+    setSelectedCase(caseData)
+    setIsDrawerOpen(true)
+  }
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false)
+    setTimeout(() => setSelectedCase(null), 300)
+  }
+
+  const handleSendFeedback = () => {
+    if (!selectedCase) return
+    setFeedbackSending(true)
+    fetch(`${API_BASE_URL}/api/cases/${selectedCase.caseId.replace('#', '')}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: "investigate", notes: "Iniciado desde panel" })
+    })
+      .then(res => res.json())
+      .then(() => {
+        setFeedbackSent(true)
+        setFeedbackSending(false)
+        setTimeout(() => setFeedbackSent(false), 3000)
+      })
+      .catch(err => {
+        console.error(err)
+        setFeedbackSending(false)
+        alert('Error al enviar feedback')
+      })
+  }
 
   return (
     <main className="page critical-page">
       <div className="dashboard-layout critical-layout">
-        <aside className="dashboard-sidebar critical-sidebar">
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}
-                  >
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/casos-criticos" />
 
         <section className="dashboard-main critical-main">
           <header className="dashboard-topbar critical-topbar">
@@ -391,10 +255,36 @@ export function CriticalCasesPage() {
               <p>Monitoreo avanzado de siniestros de alto riesgo</p>
             </div>
 
-            <div className="critical-threat">
-              <span className="threat-dot" />
-              <strong>Threat Level</strong>
-              <b>SEVERO</b>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                id="btn-exportar-csv"
+                type="button"
+                onClick={() => {
+                  fetch(`${API_BASE_URL}/api/cases/export`)
+                    .then(res => res.blob())
+                    .then(blob => {
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = 'casos_criticos.csv'
+                      document.body.appendChild(a)
+                      a.click()
+                      document.body.removeChild(a)
+                      URL.revokeObjectURL(url)
+                    })
+                    .catch(err => console.error('Error exportando CSV:', err))
+                }}
+                className="btn btn-secondary case-secondary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, padding: '6px 14px' }}
+              >
+                ⬇ Exportar CSV
+              </button>
+
+              <div className="critical-threat">
+                <span className="threat-dot" />
+                <strong>Threat Level</strong>
+                <b>SEVERO</b>
+              </div>
             </div>
           </section>
 
@@ -482,17 +372,8 @@ export function CriticalCasesPage() {
                       {row.state}
                     </span>
                     <div className="critical-actions">
-                      <button type="button" onClick={(e) => { e.stopPropagation(); setActiveCase(row); }}>
-                        <Eye size={16} weight="bold" />
-                      </button>
-                      <button type="button" onClick={(e) => e.stopPropagation()}>
-                        <FileText size={16} weight="bold" />
-                      </button>
-                      <button type="button" onClick={(e) => e.stopPropagation()}>
-                        <ClockIcon />
-                      </button>
-                      <button type="button" onClick={(e) => e.stopPropagation()}>
-                        <ArrowRight size={16} weight="bold" />
+                      <button type="button" onClick={(e) => { e.stopPropagation(); openDrawer(row); }}>
+                        <Eye size={16} weight="bold" /> Ver Detalles
                       </button>
                     </div>
                   </div>
@@ -557,53 +438,13 @@ export function CriticalCasesPage() {
                 )}
 
                 <div className="case-actions">
-                  <button type="button" className="btn btn-primary case-primary">
-                    Ver análisis completo
+                  <button type="button" className="btn btn-primary case-primary" onClick={() => activeCase && openDrawer(activeCase)}>
+                    Abrir línea de tiempo
                   </button>
-                  <div className="critical-secondary-actions">
-                    <button type="button" className="btn btn-secondary case-secondary">
-                      Bloquear proceso
-                    </button>
-                    <button type="button" className="btn btn-secondary case-secondary">
-                      Escalar caso
-                    </button>
-                  </div>
-                </div>
-              </article>
-
-              <article className="critical-panel alerts-panel">
-                <div className="panel-head">
-                  <div>
-                    <h2>Alertas IA</h2>
-                  </div>
-                </div>
-
-                <div className="alert-tags">
-                  {alertTags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
                 </div>
               </article>
 
               <div className="critical-rail-grid">
-                <article className="critical-panel timeline-panel">
-                  <div className="panel-head">
-                    <div>
-                      <h2>Timeline forense</h2>
-                    </div>
-                  </div>
-
-                  <div className="timeline-list">
-                    {timelineData.map((item, idx) => (
-                      <div key={idx} className="timeline-row">
-                        <span className={`timeline-dot tone-${item.tone}`} />
-                        <strong>{item.time}</strong>
-                        <p>{item.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-
                 <article className="critical-panel network-panel">
                   <div className="panel-head">
                     <div>
@@ -626,71 +467,60 @@ export function CriticalCasesPage() {
                   </div>
                 </article>
               </div>
-        </aside>
+            </aside>
           </section>
+        </section>
 
-          <section className="critical-footer-grid">
-            <article className="critical-panel map-panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Mapa de incidentes críticos</h2>
+        {/* DRAWER LATERAL */}
+        {isDrawerOpen && (
+          <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: '400px', background: '#1c1c1f', zIndex: 100, borderLeft: '1px solid rgba(255,255,255,0.1)', boxShadow: '-10px 0 30px rgba(0,0,0,0.5)', padding: '24px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.25rem' }}>Línea de tiempo del caso</h2>
+              <button onClick={closeDrawer} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+
+            {selectedCase && (
+              <div style={{ marginBottom: '24px', background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{selectedCase.caseId}</h3>
+                <p style={{ margin: '4px 0 0', color: '#a1a1aa' }}>{selectedCase.insured}</p>
+                <div style={{ marginTop: '8px', display: 'inline-block', background: selectedCase.risk === 'CRÍTICO' ? '#ef4444' : '#f59e0b', color: '#000', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  RIESGO {selectedCase.risk}
                 </div>
               </div>
-              <div className="critical-map">
-                <span className="map-heat heat-red" />
-                <span className="map-heat heat-orange" />
-                <span className="map-heat heat-yellow" />
-                {pins.map((pin) => (
-                  <span
-                    key={pin.sucursal}
-                    className="map-badge"
-                    style={{
-                      left: pin.x,
-                      top: pin.y,
-                      backgroundColor: pin.tone === 'red' ? '#ef4444' : pin.tone === 'orange' ? '#f97316' : '#3b82f6',
-                      width: parseInt(pin.label) > 12 ? '42px' : '34px',
-                      height: parseInt(pin.label) > 12 ? '42px' : '34px'
-                    } as CSSProperties}
-                  >
-                    {pin.label}
-                  </span>
-                ))}
-                <div className="map-controls">
-                  <button type="button">+</button>
-                  <button type="button">-</button>
-                </div>
-                <div className="map-legend">
-                  <span>Bajo riesgo</span>
-                  <div className="map-gradient" />
-                  <span>Alto riesgo</span>
-                </div>
-              </div>
-            </article>
+            )}
 
-            <article className="critical-panel detections-panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Detecciones IA en tiempo real</h2>
-                </div>
-              </div>
-
-              <div className="detections-list">
-                {detections.map((item, idx) => (
-                  <div key={idx} className={`detection-item tone-${item.tone}`}>
-                    <strong>{item.time}</strong>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div className="timeline-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {timelineData.map((item: any, idx: number) => (
+                  <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: item.tone === 'red' ? '#ef4444' : item.tone === 'orange' ? '#f59e0b' : item.tone === 'blue' ? '#3b82f6' : '#10b981', marginTop: '6px' }} />
                     <div>
-                      <p>{item.title}</p>
-                      <span>{item.detail}</span>
+                      <strong style={{ fontSize: '0.9rem', color: '#e4e4e7' }}>{item.time}</strong>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.95rem', color: '#a1a1aa' }}>{item.label}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <a href="#" className="text-link">
-                Ver todas las detecciones <ArrowGlyph />
-              </a>
-            </article>
-          </section>
-        </section>
+            </div>
+
+            <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              {feedbackSent && (
+                <div style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '12px', borderRadius: '6px', textAlign: 'center', marginBottom: '16px', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
+                  ✅ Feedback enviado correctamente.
+                </div>
+              )}
+              <button 
+                onClick={handleSendFeedback} 
+                disabled={feedbackSending}
+                style={{ width: '100%', padding: '12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: feedbackSending ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+              >
+                {feedbackSending ? 'Enviando...' : 'Enviar Feedback'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
@@ -699,4 +529,3 @@ export function CriticalCasesPage() {
 function ClockIcon() {
   return <span className="clock-icon">◔</span>
 }
-

@@ -1,32 +1,24 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Bell, Building, CirclesThree, House,
-  MapTrifold, MagnifyingGlass, ShieldCheck,
-  Stethoscope, UserCircle, UsersThree, WarningCircle, FileText, SlidersHorizontal
+  Bell, Building, MagnifyingGlass, ShieldCheck,
+  UserCircle
 } from '@phosphor-icons/react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 
 import './ProvidersPage.css'
 
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: false },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', active: false },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', active: false },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', active: false },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares', active: false },
-]
-
-const entityMenu = [
-  { label: 'Vehículos', icon: FileText, href: '/vehiculos', active: false },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores', active: true },
-  { label: 'Asegurados', icon: UserCircle, href: '/asegurados', active: false },
-  { label: 'Talleres', icon: Stethoscope, href: '/talleres', active: false },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ShieldCheck, href: '/calculadora', active: false },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
-]
+interface Provider {
+  id_proveedor: string
+  nombre_proveedor: string
+  tipo_proveedor: string
+  ciudad_proveedor: string
+  siniestros_asociados: number
+  lista_restrictiva: string
+  motivo_restriccion: string
+  promedio_monto: number
+  alerta_nivel: string
+}
 
 const smartCards = [
   { id: 'T-002', name: 'AutoMecánica L&R', city: 'Envigado', risk: 'Alto', claims: 38, score: '89%', riskClass: 'high', trend: [20, 30, 45, 60, 80, 89] },
@@ -56,70 +48,29 @@ const riskMatrixPoints = [
 ]
 
 export function ProvidersPage() {
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/providers')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) setProviders(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error cargando proveedores:', err)
+        setError('No se pudo conectar al servidor')
+        setLoading(false)
+      })
+  }, [])
+
   return (
     <div className="providers-page">
       <div className="providers-layout">
         {/* Sidebar Reutilizado (Adaptado a layout específico) */}
-        <aside className="dashboard-sidebar">
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <a key={item.label} href={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <a key={item.label} href={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-          
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/proveedores" />
 
         <main className="providers-main">
           {/* Topbar */}
@@ -343,52 +294,94 @@ export function ProvidersPage() {
           {/* SMART CARDS GRID */}
           <section className="smart-cards-section">
             <h2 className="section-title">Grid de Proveedores</h2>
-            <div className="smart-cards-grid">
-              {smartCards.map(card => (
-                <div key={card.id} className="smart-card">
-                  <div className="card-top">
-                    <div>
-                      <h3>{card.name}</h3>
-                      <span>{card.city}</span>
-                    </div>
-                    <span className={`risk-badge-high`} style={{ 
-                      background: card.risk === 'Alto' ? '#fef2f2' : card.risk === 'Medio' ? '#fff7ed' : '#f0fdf4',
-                      color: card.risk === 'Alto' ? '#ef4444' : card.risk === 'Medio' ? '#ea580c' : '#16a34a',
-                      borderColor: card.risk === 'Alto' ? '#fecaca' : card.risk === 'Medio' ? '#fed7aa' : '#bbf7d0',
-                    }}>
-                      Riesgo: {card.risk}
-                    </span>
-                  </div>
-                  
-                  <div className="card-metrics">
-                    <div>
-                      <strong>{card.claims}</strong>
-                      <small>Reclamos</small>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <strong>{card.score}</strong>
-                      <small>IA Score</small>
-                    </div>
-                  </div>
+            {error && <div style={{ padding: '8px 12px', background: '#fef2f2', color: '#dc2626', borderRadius: 8, marginBottom: 12, fontSize: 13 }}>{error}</div>}
+            {loading ? (
+              <div style={{ padding: '40px', textAlign: 'center' }}>Cargando proveedores...</div>
+            ) : (
+              <div className="smart-cards-grid">
+                {providers.length > 0
+                  ? providers.slice(0, 4).map(card => {
+                      const risk = card.alerta_nivel === 'rojo' ? 'Alto' : card.alerta_nivel === 'amarillo' ? 'Medio' : 'Bajo'
+                      return (
+                        <div key={card.id_proveedor} className="smart-card">
+                          <div className="card-top">
+                            <div>
+                              <h3>{card.nombre_proveedor}</h3>
+                              <span>{card.ciudad_proveedor}</span>
+                            </div>
+                            <span className="risk-badge-high" style={{
+                              background: risk === 'Alto' ? '#fef2f2' : risk === 'Medio' ? '#fff7ed' : '#f0fdf4',
+                              color: risk === 'Alto' ? '#ef4444' : risk === 'Medio' ? '#ea580c' : '#16a34a',
+                              borderColor: risk === 'Alto' ? '#fecaca' : risk === 'Medio' ? '#fed7aa' : '#bbf7d0',
+                            }}>
+                              Riesgo: {risk}
+                            </span>
+                          </div>
 
-                  {/* Mini Visual Trend */}
-                  <div className="mini-visual">
-                    {card.trend.map((val, i) => (
-                      <div 
-                        key={i} 
-                        className={`mini-bar ${val >= 80 ? 'high' : val >= 50 ? 'med' : ''}`}
-                        style={{ height: `${val}%` }}
-                      ></div>
-                    ))}
-                  </div>
+                          <div className="card-metrics">
+                            <div>
+                              <strong>{card.siniestros_asociados}</strong>
+                              <small>Reclamos</small>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <strong>${card.promedio_monto?.toLocaleString() ?? '-'}</strong>
+                              <small>Monto prom.</small>
+                            </div>
+                          </div>
 
-                  <div className="card-actions">
-                    <button className="btn-outline">Ver red</button>
-                    <button className="btn-primary-sm">Analizar</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                          <div className="card-actions">
+                            <button className="btn-outline">Ver red</button>
+                            <button className="btn-primary-sm">Analizar</button>
+                          </div>
+                        </div>
+                      )
+                    })
+                  : smartCards.map(card => (
+                      <div key={card.id} className="smart-card">
+                        <div className="card-top">
+                          <div>
+                            <h3>{card.name}</h3>
+                            <span>{card.city}</span>
+                          </div>
+                          <span className="risk-badge-high" style={{
+                            background: card.risk === 'Alto' ? '#fef2f2' : card.risk === 'Medio' ? '#fff7ed' : '#f0fdf4',
+                            color: card.risk === 'Alto' ? '#ef4444' : card.risk === 'Medio' ? '#ea580c' : '#16a34a',
+                            borderColor: card.risk === 'Alto' ? '#fecaca' : card.risk === 'Medio' ? '#fed7aa' : '#bbf7d0',
+                          }}>
+                            Riesgo: {card.risk}
+                          </span>
+                        </div>
+
+                        <div className="card-metrics">
+                          <div>
+                            <strong>{card.claims}</strong>
+                            <small>Reclamos</small>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <strong>{card.score}</strong>
+                            <small>IA Score</small>
+                          </div>
+                        </div>
+
+                        <div className="mini-visual">
+                          {card.trend.map((val, i) => (
+                            <div
+                              key={i}
+                              className={`mini-bar ${val >= 80 ? 'high' : val >= 50 ? 'med' : ''}`}
+                              style={{ height: `${val}%` }}
+                            ></div>
+                          ))}
+                        </div>
+
+                        <div className="card-actions">
+                          <button className="btn-outline">Ver red</button>
+                          <button className="btn-primary-sm">Analizar</button>
+                        </div>
+                      </div>
+                    ))
+                }
+              </div>
+            )}
           </section>
 
           {/* BOTTOM PANELS */}

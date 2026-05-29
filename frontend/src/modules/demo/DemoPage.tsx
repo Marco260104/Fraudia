@@ -20,26 +20,7 @@ import {
 import { Link } from 'react-router-dom'
 
 
-const mainMenu = [
-  { label: 'Centro de inteligencia', icon: House, href: '/demo', active: true },
-  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
-  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
-  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros' },
-  { label: 'Narrativas similares', icon: CirclesThree, href: '/narrativas-similares' },
-]
-
-const entityMenu = [
-  { label: 'Vehiculos', icon: FileText, href: '/vehiculos' },
-  { label: 'Proveedores', icon: UsersThree, href: '/proveedores' },
-  { label: 'Asegurados', icon: UserCircle, href: '/asegurados' },
-  { label: 'Talleres', icon: Stethoscope, href: '/talleres' },
-]
-
-const toolMenu = [
-  { label: 'Calculadora de riesgo', icon: ChartLineUp, href: '/calculadora', active: false },
-  { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', active: false },
-  { label: 'Configuración', icon: SlidersHorizontal, href: '/configuracion', active: false },
-]
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 
 const kpis = [
   { title: 'Siniestros analizados hoy', value: '1,247', accent: 'blue', delta: '+24% vs ayer' },
@@ -255,77 +236,7 @@ export function DemoPage() {
   return (
     <main className="page dashboard-page">
       <div className="dashboard-layout">
-        <aside className="dashboard-sidebar">
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}
-                  >
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a key={item.label} href={item.href} className="dashboard-nav-item">
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-
-                return (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className={`dashboard-nav-item ${item.active ? 'is-tool-active' : ''}`}
-                  >
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </a>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/demo" />
 
         <section className="dashboard-main">
           <header className="dashboard-topbar">

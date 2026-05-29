@@ -553,3 +553,62 @@
   40% { transform: scale(1.0); }
 }
 
+/* MARKDOWN RENDERING STYLES */
+.markdown-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.markdown-body .md-h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ast-darker);
+  margin: 16px 0 8px 0;
+  letter-spacing: -0.3px;
+}
+.markdown-body .md-h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ast-darker);
+  margin: 14px 0 6px 0;
+}
+.markdown-body .md-h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ast-dark);
+  margin: 10px 0 4px 0;
+}
+.markdown-body .md-p {
+  margin: 0;
+  font-weight: 500;
+  color: #334155;
+  line-height: 1.6;
+}
+.markdown-body .md-strong {
+  font-weight: 700;
+  color: var(--ast-blue);
+}
+.markdown-body .md-ul {
+  margin: 6px 0;
+  padding-left: 24px;
+  list-style-type: disc;
+}
+.markdown-body .md-ol {
+  margin: 6px 0;
+  padding-left: 24px;
+  list-style-type: decimal;
+}
+.markdown-body .md-li {
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #334155;
+  line-height: 1.5;
+}
+.markdown-body .md-li:last-child {
+  margin-bottom: 0;
+}
+.markdown-body .md-spacer {
+  height: 8px;
+}
+
+

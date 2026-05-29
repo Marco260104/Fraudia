@@ -74,8 +74,7 @@ Todo el sistema de detección de fraude vive en `backend/`:
 - `reports/` → Gráficos comparativos para justificar la elección de modelos
 - `data/processed/` → Salidas intermedias si se necesitan en futuras iteraciones
 
-El backend ya no depende del dataset sintético viejo para entrenar.
-La idea es tomar `DataEnt`, construir variables de riesgo y comparar 4 modelos para quedarse con el top 3 de mejor desempeño.
+
 
 ## Arquitectura
 

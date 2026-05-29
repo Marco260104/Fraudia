@@ -5,9 +5,9 @@ import {
   DownloadSimple, Lightning, Lightbulb
 } from '@phosphor-icons/react'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { MarkdownRenderer } from '../../shared/ui/MarkdownRenderer'
 import { API_BASE_URL } from '../../config/api'
 import './ReportsPage.css'
-
 
 export function ReportsPage() {
   const [kpis, setKpis] = useState<any>({
@@ -17,6 +17,18 @@ export function ReportsPage() {
     riesgo_promedio: '42%'
   })
 
+  const [reportType, setReportType] = useState('Ejecutivo')
+  const [period, setPeriod] = useState('Últimos 30 días')
+  const [riskLevel, setRiskLevel] = useState('Solo Críticos')
+  const [city, setCity] = useState('Nacional (Global)')
+  const [loading, setLoading] = useState(false)
+  const [aiSummary, setAiSummary] = useState(
+    '### Resumen Analítico IA\n' +
+    'La IA identificó un incremento del **18%** en patrones de narrativa similar durante los últimos 30 días, sugiriendo la actividad de una red coordinada.\n\n' +
+    'Las ciudades con mayor concentración de alertas fueron **Quito** y **Guayaquil**.\n\n' +
+    'Adicionalmente, **tres proveedores** concentran el 42% de los casos críticos observados, requiriendo revisión inmediata de contratos.'
+  )
+
   useEffect(() => {
     fetch(API_BASE_URL + '/api/kpis')
       .then(res => res.json())
@@ -25,6 +37,32 @@ export function ReportsPage() {
       })
       .catch(console.error)
   }, [])
+
+  const handleGenerateReport = () => {
+    setLoading(true)
+    fetch(API_BASE_URL + '/api/reports/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report_type: reportType,
+        period: period,
+        risk_level: riskLevel,
+        city: city
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.report) {
+          setAiSummary(data.report)
+        }
+      })
+      .catch(err => {
+        console.error('Error generating report:', err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }
 
   return (
     <div className="reports-page">
@@ -48,12 +86,12 @@ export function ReportsPage() {
                   <div className="ai-dot"></div>
                   IA Analítica Activa
                 </div>
-                <button className="rep-btn-sec">
+                <button className="rep-btn-sec" onClick={() => window.print()}>
                   <DownloadSimple size={16} weight="bold" style={{ display: 'inline', marginRight: '6px' }} />
                   Exportar PDF
                 </button>
-                <button className="rep-btn-pri">
-                  + Generar reporte
+                <button className="rep-btn-pri" onClick={handleGenerateReport} disabled={loading}>
+                  {loading ? 'Generando...' : '+ Generar reporte'}
                 </button>
               </div>
             </header>
@@ -197,40 +235,42 @@ export function ReportsPage() {
                 <div className="gen-grid">
                   <div className="gen-group">
                     <label>Tipo de reporte</label>
-                    <select className="gen-select">
-                      <option>Ejecutivo</option>
-                      <option>Auditoría</option>
-                      <option>Riesgo operativo</option>
-                      <option>Red sospechosa</option>
+                    <select className="gen-select" value={reportType} onChange={(e) => setReportType(e.target.value)}>
+                      <option value="Ejecutivo">Ejecutivo</option>
+                      <option value="Auditoría">Auditoría</option>
+                      <option value="Riesgo operativo">Riesgo operativo</option>
+                      <option value="Red sospechosa">Red sospechosa</option>
                     </select>
                   </div>
                   <div className="gen-group">
                     <label>Periodo</label>
-                    <select className="gen-select">
-                      <option>Últimos 30 días</option>
-                      <option>Últimos 90 días</option>
-                      <option>Este año</option>
+                    <select className="gen-select" value={period} onChange={(e) => setPeriod(e.target.value)}>
+                      <option value="Últimos 30 días">Últimos 30 días</option>
+                      <option value="Últimos 90 días">Últimos 90 días</option>
+                      <option value="Este año">Este año</option>
                     </select>
                   </div>
                   <div className="gen-group">
                     <label>Nivel de Riesgo</label>
-                    <select className="gen-select">
-                      <option>Solo Críticos</option>
-                      <option>Medios y Críticos</option>
-                      <option>Todos</option>
+                    <select className="gen-select" value={riskLevel} onChange={(e) => setRiskLevel(e.target.value)}>
+                      <option value="Solo Críticos">Solo Críticos</option>
+                      <option value="Medios y Críticos">Medios y Críticos</option>
+                      <option value="Todos">Todos</option>
                     </select>
                   </div>
                   <div className="gen-group">
                     <label>Ciudad</label>
-                    <select className="gen-select">
-                      <option>Nacional (Global)</option>
-                      <option>Quito</option>
-                      <option>Guayaquil</option>
+                    <select className="gen-select" value={city} onChange={(e) => setCity(e.target.value)}>
+                      <option value="Nacional (Global)">Nacional (Global)</option>
+                      <option value="Quito">Quito</option>
+                      <option value="Guayaquil">Guayaquil</option>
                     </select>
                   </div>
                 </div>
 
-                <button className="gen-btn">Generar Análisis IA</button>
+                <button className="gen-btn" onClick={handleGenerateReport} disabled={loading}>
+                  {loading ? 'Analizando en Base de Datos...' : 'Generar Análisis IA'}
+                </button>
               </div>
 
               {/* AI Live Summary */}
@@ -239,10 +279,8 @@ export function ReportsPage() {
                 <div className="panel-header" style={{ marginBottom: 0 }}>
                   <h3 style={{ color: 'white' }}><Brain size={20} weight="fill" color="#a78bfa" /> Resumen Analítico IA</h3>
                 </div>
-                <div className="ai-text">
-                  <p>La IA identificó un incremento del <span className="ai-highlight">18%</span> en patrones de narrativa similar durante los últimos 30 días, sugiriendo la actividad de una red coordinada.</p>
-                  <p>Las ciudades con mayor concentración de alertas fueron <span className="ai-highlight">Quito</span> y <span className="ai-highlight">Guayaquil</span>.</p>
-                  <p>Adicionalmente, <span className="ai-highlight">tres proveedores</span> concentran el 42% de los casos críticos observados, requiriendo revisión de contratos.</p>
+                <div className="ai-text" style={{ fontSize: '0.88rem', color: '#f1f5f9' }}>
+                  <MarkdownRenderer content={aiSummary} />
                 </div>
               </div>
 

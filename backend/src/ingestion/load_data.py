@@ -8,8 +8,19 @@ from dotenv import load_dotenv
 # Configurar codificación utf-8 para la consola de Windows
 sys.stdout.reconfigure(encoding='utf-8')
 
-# Cargar variables de entorno del archivo .env
-load_dotenv(Path(__file__).resolve().parents[3] / ".env")
+# Cargar variables de entorno del archivo .env buscando recursivamente hacia arriba
+def _load_env():
+    current_dir = Path(__file__).resolve().parent
+    for _ in range(5):
+        env_file = current_dir / ".env"
+        if env_file.exists():
+            load_dotenv(env_file)
+            return
+        current_dir = current_dir.parent
+    # Fallback to default load_dotenv (which reads system environment/CWD)
+    load_dotenv()
+
+_load_env()
 
 # Configurar variables de conexión (con valores por defecto si no existen)
 DB_HOST = os.getenv("DB_HOST", "localhost")

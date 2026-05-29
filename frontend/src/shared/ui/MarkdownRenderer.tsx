@@ -9,51 +9,91 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     if (!content) return null
 
     const lines = content.split('\n')
-    return lines.map((line, idx) => {
-      const trimmed = line.trim()
+    const elements: React.ReactNode[] = []
+    let currentList: { type: 'ul' | 'ol'; items: { text: string; start?: number }[] } | null = null
 
-      // 1. Render Subheadings (e.g., ### Title or ## Title)
-      if (trimmed.startsWith('###')) {
-        const text = trimmed.substring(3).trim()
-        return <h4 key={idx} className="md-h4">{renderInline(text)}</h4>
-      }
-      if (trimmed.startsWith('##')) {
-        const text = trimmed.substring(2).trim()
-        return <h3 key={idx} className="md-h3">{renderInline(text)}</h3>
-      }
-      if (trimmed.startsWith('#')) {
-        const text = trimmed.substring(1).trim()
-        return <h2 key={idx} className="md-h2">{renderInline(text)}</h2>
-      }
-
-      // 2. Render Bullet Lists (e.g., * Item or - Item)
-      if (trimmed.startsWith('*') || trimmed.startsWith('-')) {
-        const text = trimmed.substring(1).trim()
-        return (
-          <ul key={idx} className="md-ul">
-            <li className="md-li">{renderInline(text)}</li>
+    const flushList = (key: number) => {
+      if (!currentList) return
+      if (currentList.type === 'ul') {
+        elements.push(
+          <ul key={`ul-${key}`} className="md-ul">
+            {currentList.items.map((item, i) => (
+              <li key={i} className="md-li">{renderInline(item.text)}</li>
+            ))}
           </ul>
         )
-      }
-
-      // 3. Render numbered lists (e.g., 1. Item)
-      const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/)
-      if (numMatch) {
-        const text = numMatch[2].trim()
-        return (
-          <ol key={idx} className="md-ol" start={parseInt(numMatch[1], 10)}>
-            <li className="md-li">{renderInline(text)}</li>
+      } else {
+        elements.push(
+          <ol key={`ol-${key}`} className="md-ol" start={currentList.items[0].start}>
+            {currentList.items.map((item, i) => (
+              <li key={i} className="md-li">{renderInline(item.text)}</li>
+            ))}
           </ol>
         )
       }
+      currentList = null
+    }
 
-      // 4. Default plain text line (with inline formatting)
-      if (trimmed === '') {
-        return <div key={idx} className="md-spacer" style={{ height: '8px' }} />
+    lines.forEach((line, idx) => {
+      const trimmed = line.trim()
+
+      // 1. Render Bullet Lists (e.g., * Item or - Item)
+      if (trimmed.startsWith('*') || trimmed.startsWith('-')) {
+        const text = trimmed.substring(1).trim()
+        if (currentList && currentList.type === 'ul') {
+          currentList.items.push({ text })
+        } else {
+          flushList(idx)
+          currentList = { type: 'ul', items: [{ text }] }
+        }
+        return
       }
 
-      return <p key={idx} className="md-p">{renderInline(line)}</p>
+      // 2. Render numbered lists (e.g., 1. Item)
+      const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/)
+      if (numMatch) {
+        const start = parseInt(numMatch[1], 10)
+        const text = numMatch[2].trim()
+        if (currentList && currentList.type === 'ol') {
+          currentList.items.push({ text })
+        } else {
+          flushList(idx)
+          currentList = { type: 'ol', items: [{ text, start }] }
+        }
+        return
+      }
+
+      // Not a list item, flush any current list
+      flushList(idx)
+
+      // 3. Render Subheadings
+      if (trimmed.startsWith('###')) {
+        const text = trimmed.substring(3).trim()
+        elements.push(<h4 key={idx} className="md-h4">{renderInline(text)}</h4>)
+        return
+      }
+      if (trimmed.startsWith('##')) {
+        const text = trimmed.substring(2).trim()
+        elements.push(<h3 key={idx} className="md-h3">{renderInline(text)}</h3>)
+        return
+      }
+      if (trimmed.startsWith('#')) {
+        const text = trimmed.substring(1).trim()
+        elements.push(<h2 key={idx} className="md-h2">{renderInline(text)}</h2>)
+        return
+      }
+
+      // 4. Default plain text line (with inline formatting) or empty spacer
+      if (trimmed === '') {
+        elements.push(<div key={idx} className="md-spacer" />)
+        return
+      }
+
+      elements.push(<p key={idx} className="md-p">{renderInline(line)}</p>)
     })
+
+    flushList(lines.length)
+    return elements
   }, [content])
 
   return <div className="markdown-body">{renderedElements}</div>

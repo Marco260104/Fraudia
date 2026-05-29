@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { ArrowRight, ChartLineUp, ShieldCheck, Sparkle, Target } from '@phosphor-icons/react'
 import { gsap } from 'gsap'
+import { API_BASE_URL } from '../../config/api'
 
 const trustLogos = ['Oracle', 'AWS', 'Microsoft Azure', 'NVIDIA', 'OpenAI', 'Databricks']
 
 const heroStats = [
-  { value: '-42%', label: 'Tiempo de revision manual' },
-  { value: '+27%', label: 'Deteccion temprana' },
+  { value: '-42%', label: 'Tiempo de revisión manual' },
+  { value: '+27%', label: 'Detección temprana' },
   { value: '$2.45M', label: 'Ahorro estimado' },
   { value: '+300%', label: 'Capacidad en paralelo' },
 ]
@@ -74,6 +75,22 @@ const evidenceImages = [
 export function HomePage() {
   const heroRef = useRef<HTMLElement | null>(null)
   const visualRef = useRef<HTMLDivElement | null>(null)
+
+  const [kpis, setKpis] = useState({
+    siniestros_analizados: '1,247',
+    alertas_generadas: '56',
+    casos_criticos: '18',
+    riesgo_promedio: '67%',
+    monto_reclamado: '$2.45M',
+    dinero_protegido: '$1.84M'
+  })
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/kpis`)
+      .then(res => res.json())
+      .then(data => data && setKpis(data))
+      .catch(err => console.log('Home KPIs fetch error:', err))
+  }, [])
 
   const motionTargets = useMemo(
     () => [
@@ -361,20 +378,20 @@ export function HomePage() {
             </div>
             <div className="dashboard-grid-mini">
               <article>
-                <span>24,562</span>
+                <span>{kpis.siniestros_analizados}</span>
                 <p>Eventos analizados</p>
               </article>
               <article>
-                <span>1,389</span>
+                <span>{kpis.alertas_generadas}</span>
                 <p>Alertas generadas</p>
               </article>
               <article>
-                <span>87%</span>
+                <span>{kpis.riesgo_promedio}</span>
                 <p>Score promedio</p>
               </article>
               <article>
-                <span>$2.45M</span>
-                <p>Ahorro estimado</p>
+                <span>{kpis.dinero_protegido}</span>
+                <p>Dinero protegido</p>
               </article>
             </div>
             <div className="dashboard-graph">

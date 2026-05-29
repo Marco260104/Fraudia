@@ -9,5 +9,8 @@ python-dotenv
 openpyxl
 fastapi
 uvicorn
+pytest
+requests
+httpx
 
 

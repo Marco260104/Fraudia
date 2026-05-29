@@ -9,6 +9,7 @@ import {
 import { Link } from 'react-router-dom'
 import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import { API_BASE_URL } from '../../config/api'
+import { MarkdownRenderer } from '../../shared/ui/MarkdownRenderer'
 import './AssistantPage.css'
 
 
@@ -111,7 +112,7 @@ Dime cómo deseas proceder.`
                         {msg.role === 'user' ? 'ME' : <ShieldCheck size={18} weight="fill" />}
                       </div>
                       <div className="ast-chat-bubble">
-                        <div className="ast-chat-bubble-text" style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                        <div className="ast-chat-bubble-text"><MarkdownRenderer content={msg.content} /></div>
                         <span className="ast-chat-bubble-time">{msg.timestamp}</span>
                       </div>
                     </div>

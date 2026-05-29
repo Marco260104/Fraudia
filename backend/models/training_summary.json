@@ -1,0 +1,94 @@
+{
+  "validation": {
+    "logistic_regression": {
+      "roc_auc": 0.9911924119241192,
+      "pr_auc": 0.9648525429056121,
+      "precision": 0.9375,
+      "recall": 0.8333333333333334,
+      "f1": 0.8823529411764706,
+      "accuracy": 0.96
+    },
+    "random_forest": {
+      "roc_auc": 0.9993224932249323,
+      "pr_auc": 0.9970760233918128,
+      "precision": 1.0,
+      "recall": 0.7777777777777778,
+      "f1": 0.875,
+      "accuracy": 0.96
+    },
+    "gradient_boosting": {
+      "roc_auc": 0.9986449864498645,
+      "pr_auc": 0.9944444444444446,
+      "precision": 1.0,
+      "recall": 0.7222222222222222,
+      "f1": 0.8387096774193549,
+      "accuracy": 0.95
+    },
+    "extra_trees": {
+      "roc_auc": 0.9911924119241192,
+      "pr_auc": 0.9690559984677634,
+      "precision": 1.0,
+      "recall": 0.7777777777777778,
+      "f1": 0.875,
+      "accuracy": 0.96
+    }
+  },
+  "test": {
+    "logistic_regression": {
+      "roc_auc": 0.9715447154471546,
+      "pr_auc": 0.8682976754545384,
+      "precision": 0.8823529411764706,
+      "recall": 0.8333333333333334,
+      "f1": 0.8571428571428571,
+      "accuracy": 0.95
+    },
+    "random_forest": {
+      "roc_auc": 0.9857723577235773,
+      "pr_auc": 0.9320480073189052,
+      "precision": 0.8823529411764706,
+      "recall": 0.8333333333333334,
+      "f1": 0.8571428571428571,
+      "accuracy": 0.95
+    },
+    "gradient_boosting": {
+      "roc_auc": 0.983739837398374,
+      "pr_auc": 0.9207421753990382,
+      "precision": 0.9230769230769231,
+      "recall": 0.6666666666666666,
+      "f1": 0.7741935483870968,
+      "accuracy": 0.93
+    },
+    "extra_trees": {
+      "roc_auc": 0.9695121951219512,
+      "pr_auc": 0.8481487805869732,
+      "precision": 0.8125,
+      "recall": 0.7222222222222222,
+      "f1": 0.7647058823529411,
+      "accuracy": 0.92
+    }
+  },
+  "top3": [
+    "random_forest",
+    "gradient_boosting",
+    "logistic_regression"
+  ],
+  "best_model": "random_forest",
+  "best_test": {
+    "roc_auc": 0.9857723577235773,
+    "pr_auc": 0.9320480073189052,
+    "precision": 0.8823529411764706,
+    "recall": 0.8333333333333334,
+    "f1": 0.8571428571428571,
+    "accuracy": 0.95
+  },
+  "class_balance": {
+    "positive": 91,
+    "negative": 409
+  },
+  "selected_distribution": {
+    "verde": 78,
+    "rojo": 15,
+    "amarillo": 7
+  },
+  "scores_path": "/mnt/c/Users/marco/Documents/GitHub/Hackaton/Fraudia/backend/models/scored_claims.csv"
+}

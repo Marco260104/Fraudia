@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Bell, CirclesThree, House, MapTrifold, ShieldCheck,
   Stethoscope, UserCircle, UsersThree, WarningCircle, FileText,
-  Brain, SlidersHorizontal, Sliders, Database, Globe, ChatText, Robot, Lightning, User, Lock, Terminal, Shield
+  Brain, SlidersHorizontal, Sliders, Database, Globe, ChatText, Robot, Lightning, User, Lock, Terminal, Shield, ChartPieSlice
 } from '@phosphor-icons/react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts'
 import { Link } from 'react-router-dom'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import './ConfigPage.css'
 
 const mainMenu = [
@@ -32,71 +34,48 @@ export function ConfigPage() {
   const [sensitivity, setSensitivity] = useState(82)
   const [ruleWeight, setRuleWeight] = useState(65)
 
+  interface ModelStatus {
+    best_model: string
+    roc_auc: number
+    precision: number
+    recall: number
+    f1: number
+    accuracy: number
+    casos_positivos: number
+    casos_negativos: number
+    fecha_entrenamiento: string
+    threshold_actual: number
+    model_loaded: boolean
+  }
+
+  const [modelStatus, setModelStatus] = useState<ModelStatus | null>(null)
+  const [threshold, setThreshold] = useState(0.5)
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/model/status')
+      .then(res => res.json())
+      .then(data => {
+        setModelStatus(data)
+        setThreshold(data.threshold_actual ?? 0.5)
+      })
+      .catch(err => console.log('Model status no disponible:', err))
+  }, [])
+
+  const handleThresholdChange = (val: number) => {
+    setThreshold(val)
+    fetch('http://localhost:8000/api/model/threshold', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threshold: val / 100 })
+    }).catch(err => console.log('Error actualizando threshold:', err))
+  }
+
   return (
     <div className="config-page">
       <div className="config-layout">
         
         {/* SIDEBAR */}
-        <aside className="dashboard-sidebar" style={{ zIndex: 10 }}>
-          <button type="button" className="dashboard-brand">
-            <img src="/assets/Logo.png" alt="Fraudia" />
-            <span>fraudia</span>
-          </button>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Menú principal</p>
-            <nav className="dashboard-nav">
-              {mainMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                    {item.badge ? <strong>{item.badge}</strong> : null}
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Entidades</p>
-            <nav className="dashboard-nav">
-              {entityMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-          
-          <div className="dashboard-nav-group">
-            <p className="dashboard-nav-label">Herramientas</p>
-            <nav className="dashboard-nav">
-              {toolMenu.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                    <Icon size={18} weight="bold" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/configuracion" />
 
         {/* MAIN CONTENT */}
         <main className="config-main">
@@ -171,48 +150,40 @@ export function ConfigPage() {
             {/* CONFIGURATION GRID */}
             <div className="cfg-grid-2">
               
-              {/* SECTION 1: AI RISK ENGINE */}
+              {/* SECTION 1: AI RISK ENGINE / METRICS */}
               <div className="cfg-panel">
                 <div className="cfg-panel-header">
                   <div className="cfg-panel-icon" style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--cfg-blue)' }}>
-                    <Sliders size={20} weight="fill" />
+                    <ChartPieSlice size={20} weight="fill" />
                   </div>
-                  <h2>Motor de Riesgo IA</h2>
+                  <h2>Métricas: Random Forest</h2>
                 </div>
                 
-                <div className="risk-engine-controls">
-                  <div className="risk-ring-container">
-                    <svg width="60" height="60" viewBox="0 0 60 60">
-                      <circle cx="30" cy="30" r="26" fill="none" stroke="#e2e8f0" strokeWidth="6" />
-                      <circle cx="30" cy="30" r="26" fill="none" stroke={sensitivity > 80 ? 'var(--cfg-red)' : 'var(--cfg-blue)'} strokeWidth="6" strokeDasharray={`${(sensitivity / 100) * 163} 163`} strokeLinecap="round" transform="rotate(-90 30 30)" style={{ transition: 'all 0.3s' }} />
-                      <text x="30" y="34" textAnchor="middle" fontSize="14" fontWeight="bold" fill="var(--cfg-darker)">{sensitivity}%</text>
-                    </svg>
-                    <div style={{ flex: 1 }}>
-                      <div className="slider-group">
-                        <div className="slider-header">
-                          <span>Sensibilidad IA</span>
-                          <span className="slider-val" style={{ color: sensitivity > 80 ? 'var(--cfg-red)' : 'var(--cfg-blue)', background: sensitivity > 80 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(37, 99, 235, 0.1)' }}>Nivel {sensitivity > 80 ? 'Crítico' : 'Alto'}</span>
-                        </div>
-                        <input type="range" min="0" max="100" value={sensitivity} onChange={(e) => setSensitivity(Number(e.target.value))} className={sensitivity > 80 ? 'slider-critical' : ''} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="slider-group" style={{ marginTop: '8px' }}>
-                    <div className="slider-header">
-                      <span>Peso de Reglas de Negocio</span>
-                      <span className="slider-val" style={{ color: 'var(--cfg-purple)', background: 'rgba(124, 58, 237, 0.1)' }}>{ruleWeight}% Impacto</span>
-                    </div>
-                    <input type="range" min="0" max="100" value={ruleWeight} onChange={(e) => setRuleWeight(Number(e.target.value))} style={{ accentColor: 'var(--cfg-purple)' }} />
-                  </div>
-                  
-                  <div className="slider-group" style={{ marginTop: '8px' }}>
-                    <div className="slider-header">
-                      <span>Umbral de Similitud Narrativa</span>
-                      <span className="slider-val" style={{ color: 'var(--cfg-orange)', background: 'rgba(249, 115, 22, 0.1)' }}>85% Match</span>
-                    </div>
-                    <input type="range" min="0" max="100" defaultValue="85" />
-                  </div>
+                <div style={{ height: 200, width: '100%', marginTop: 10 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Casos Legítimos', value: modelStatus ? modelStatus.casos_negativos : 8500 },
+                          { name: 'Fraude Detectado', value: modelStatus ? modelStatus.casos_positivos : 1500 }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell key="cell-0" fill="#10b981" />
+                        <Cell key="cell-1" fill="#ef4444" />
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend verticalAlign="bottom" height={36} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ textAlign: 'center', marginTop: 10, fontSize: 13, color: '#64748b' }}>
+                  Proporción de fraude detectado en la base de datos de entrenamiento histórico.
                 </div>
               </div>
 
@@ -330,32 +301,57 @@ export function ConfigPage() {
                   <div className="cfg-panel-icon" style={{ background: 'rgba(124, 58, 237, 0.1)', color: 'var(--cfg-purple)' }}>
                     <Brain size={20} weight="fill" />
                   </div>
-                  <h2>Modelos IA Activos</h2>
+                  <h2>Estado del Modelo ML</h2>
                 </div>
                 <div className="rules-list">
-                  <div className="model-card">
-                    <div className="mod-head">
-                      <h3 className="mod-title">NLP Similarity Engine</h3>
-                      <span className="mod-ver">v2.4.1</span>
+                  {modelStatus ? (
+                    <>
+                      <div className="model-card">
+                        <div className="mod-head">
+                          <h3 className="mod-title">Modelo activo: {modelStatus.best_model.replace('_', ' ').toUpperCase()}</h3>
+                          <span className="mod-ver">{modelStatus.model_loaded ? '✓ Cargado' : '✗ No cargado'}</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 10, fontSize: 13 }}>
+                          <div style={{ padding: '8px 12px', background: 'rgba(37,99,235,.06)', borderRadius: 8 }}>
+                            <div style={{ color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>ROC-AUC</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', color: '#2563eb' }}>{(modelStatus.roc_auc * 100).toFixed(1)}%</div>
+                          </div>
+                          <div style={{ padding: '8px 12px', background: 'rgba(16,185,129,.06)', borderRadius: 8 }}>
+                            <div style={{ color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>Precisión</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', color: '#10b981' }}>{(modelStatus.precision * 100).toFixed(1)}%</div>
+                          </div>
+                          <div style={{ padding: '8px 12px', background: 'rgba(234,88,12,.06)', borderRadius: 8 }}>
+                            <div style={{ color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>Recall</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', color: '#ea580c' }}>{(modelStatus.recall * 100).toFixed(1)}%</div>
+                          </div>
+                          <div style={{ padding: '8px 12px', background: 'rgba(124,58,237,.06)', borderRadius: 8 }}>
+                            <div style={{ color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 700 }}>F1-Score</div>
+                            <div style={{ fontSize: 20, fontWeight: 800, fontFamily: 'monospace', color: '#7c3aed' }}>{(modelStatus.f1 * 100).toFixed(1)}%</div>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: 10, fontSize: 12, color: '#64748b' }}>
+                          <div>Entrenado: {modelStatus.fecha_entrenamiento}</div>
+                          <div>Casos positivos (fraude): <strong>{modelStatus.casos_positivos}</strong> | Negativos: <strong>{modelStatus.casos_negativos}</strong></div>
+                        </div>
+                      </div>
+                      <div className="slider-group" style={{ marginTop: 8 }}>
+                        <div className="slider-header">
+                          <span>Umbral de decisión</span>
+                          <span className="slider-val" style={{ color: 'var(--cfg-orange)', background: 'rgba(249,115,22,.1)' }}>{Math.round(threshold * 100)}%</span>
+                        </div>
+                        <input
+                          type="range" min="0" max="100"
+                          value={Math.round(threshold * 100)}
+                          onChange={(e) => handleThresholdChange(Number(e.target.value))}
+                          style={{ accentColor: 'var(--cfg-orange)' }}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: 13 }}>
+                      Cargando métricas del modelo...
                     </div>
-                    <div className="mod-metrics">
-                      <span className="mod-health"><Lightning size={14} weight="bold"/> Online</span>
-                      <span>Load: 42%</span>
-                    </div>
-                    <div className="mod-bar-bg"><div className="mod-bar-fill" style={{ width: '42%' }}></div></div>
-                  </div>
-                  
-                  <div className="model-card">
-                    <div className="mod-head">
-                      <h3 className="mod-title">Behavioral Scoring</h3>
-                      <span className="mod-ver">v1.8.0</span>
-                    </div>
-                    <div className="mod-metrics">
-                      <span className="mod-health"><Lightning size={14} weight="bold"/> Online</span>
-                      <span>Load: 88%</span>
-                    </div>
-                    <div className="mod-bar-bg"><div className="mod-bar-fill" style={{ width: '88%', background: 'var(--cfg-orange)' }}></div></div>
-                  </div>
+                  )}
                 </div>
               </div>
 

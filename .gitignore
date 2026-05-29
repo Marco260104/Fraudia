@@ -26,3 +26,20 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Modelo ML - artefactos pesados
+backend/models/*.joblib
+backend/models/scored_claims.csv
+
+# Reportes generados
+backend/reports/*.png
+backend/reports/*.pdf
+
+# Node modules (frontend)
+frontend/node_modules/
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd

@@ -15,6 +15,7 @@ import { CalculatorPage } from './modules/calculator/CalculatorPage'
 import { ReportsPage } from './modules/reports/ReportsPage'
 import { ConfigPage } from './modules/config/ConfigPage'
 import { AssistantPage } from './modules/assistant/AssistantPage'
+import { ModelTransparencyPage } from './modules/model/ModelTransparencyPage'
 
 function App() {
   const location = useLocation()
@@ -37,6 +38,7 @@ function App() {
         <Route path="/reportes" element={<ReportsPage />} />
         <Route path="/configuracion" element={<ConfigPage />} />
         <Route path="/asistente" element={<AssistantPage />} />
+        <Route path="/modelo" element={<ModelTransparencyPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </SiteShell>

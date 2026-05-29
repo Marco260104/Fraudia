@@ -1,38 +1,18 @@
-import { ShieldCheck } from 'lucide-react';
+
 import { Link, useLocation } from 'react-router-dom';
 import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
+import type { CSSProperties } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
-  ArrowRight,
-  Bell,
-  Building2,
-  ChevronDown,
-  Eye,
-  FileText,
-  Filter,
-  HelpCircle,
-  Home,
-  Link2,
-  Map,
-  MessageSquareQuote,
-  Network,
-  Search,
-  Shield,
-  ShieldAlert,
-  SlidersHorizontal,
-  Sparkles,
-  Target,
-  Users,
-  Wrench,
-  CarFront,
-  ClipboardList,
-  Layers3,
-} from 'lucide-react'
+  MagnifyingGlass, Bell, Question, Funnel, SlidersHorizontal, Eye, Link as LinkIcon, ClipboardText, FileText, ArrowRight, CaretDown, ChatTeardropText, Stack, Graph, Target, WarningCircle, Sparkle
+} from '@phosphor-icons/react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts'
 
 type SidebarItem = {
   label: string
-  icon: typeof Home
+  icon: typeof House
   href: string
   badge?: string
   group: 'main' | 'entities' | 'tools'
@@ -43,7 +23,7 @@ type SparkConfig = {
   value: string
   subtitle: string
   stroke: string
-  icon: typeof MessageSquareQuote
+  icon: typeof ChatTeardropText
   tone: string
 }
 
@@ -61,13 +41,13 @@ type NarrativeRow = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: Home, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: ShieldAlert, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
+  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: Map, href: '/mapa-siniestros', group: 'main' },
+  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
+  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
@@ -84,11 +64,11 @@ const kpiData = [
 ]
 
 const sparkConfigs: SparkConfig[] = [
-  { title: 'Narrativas analizadas hoy', value: '1,247', subtitle: '↑ 24% vs ayer', stroke: '#2563eb', icon: MessageSquareQuote, tone: 'blue' },
-  { title: 'Grupos de narrativas', value: '86', subtitle: '↑ 18% vs ayer', stroke: '#ea580c', icon: Layers3, tone: 'orange' },
-  { title: 'Coincidencias encontradas', value: '327', subtitle: '↑ 31% vs ayer', stroke: '#7c3aed', icon: Network, tone: 'violet' },
+  { title: 'Narrativas analizadas hoy', value: '1,247', subtitle: '↑ 24% vs ayer', stroke: '#2563eb', icon: ChatTeardropText, tone: 'blue' },
+  { title: 'Grupos de narrativas', value: '86', subtitle: '↑ 18% vs ayer', stroke: '#ea580c', icon: Stack, tone: 'orange' },
+  { title: 'Coincidencias encontradas', value: '327', subtitle: '↑ 31% vs ayer', stroke: '#7c3aed', icon: Graph, tone: 'violet' },
   { title: 'Precisión del modelo', value: '94%', subtitle: '↑ 6% vs semana anterior', stroke: '#16a34a', icon: Target, tone: 'green' },
-  { title: 'Narrativas críticas', value: '23', subtitle: '↑ 27% vs ayer', stroke: '#dc2626', icon: ShieldAlert, tone: 'red' },
+  { title: 'Narrativas críticas', value: '23', subtitle: '↑ 27% vs ayer', stroke: '#dc2626', icon: WarningCircle, tone: 'red' },
 ]
 
 const tabs = ['Todas', 'Alta similitud', 'Patrones detectados', 'Grupos de riesgo'] as const
@@ -224,6 +204,37 @@ export default function NarrativasSimilaresPage() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>('Alta similitud')
   const [selectedId, setSelectedId] = useState('#FR-87291')
 
+  interface CompareResult {
+    id: string
+    descripcion_preview: string
+    score_similitud: number
+    nivel: string
+  }
+
+  const [compareText, setCompareText] = useState('')
+  const [compareResults, setCompareResults] = useState<CompareResult[]>([])
+  const [comparing, setComparing] = useState(false)
+  const [compareError, setCompareError] = useState<string | null>(null)
+
+  const handleCompare = async () => {
+    if (!compareText.trim()) return
+    setComparing(true)
+    setCompareError(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/model/comparison`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: compareText })
+      })
+      const data = await res.json()
+      setCompareResults(data)
+    } catch (err) {
+      setCompareError('Error conectando al servidor')
+    } finally {
+      setComparing(false)
+    }
+  }
+
   const filteredNarratives = useMemo(() => {
     const query = search.trim().toLowerCase()
     return narratives.filter((item) => {
@@ -294,7 +305,7 @@ export default function NarrativasSimilaresPage() {
 
         .nar-shell {
           display: grid;
-          grid-template-columns: 220px minmax(0, 1fr) 330px;
+          grid-template-columns: 260px minmax(0, 1fr) 330px;
           min-height: 100vh;
           overflow: hidden;
         }
@@ -621,85 +632,13 @@ export default function NarrativasSimilaresPage() {
       `}</style>
 
       <div className="nar-shell">
-        <aside className="nar-sidebar">
-          <Link to="/demo" className="nar-brand">
-            <span className="nar-brand-mark">
-              <Shield size={18} strokeWidth={2.5} />
-            </span>
-            <span>
-              <strong>fraudia</strong>
-              <span>Detección de fraude en siniestros</span>
-            </span>
-          </Link>
-
-          <div className="nar-group">
-            <p className="nar-label">Menú principal</p>
-            {sidebarItems.filter((item) => item.group === 'main').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`nar-item ${location.pathname === item.href ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  {item.badge ? <span className="nar-badge">{item.badge}</span> : null}
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-group">
-            <p className="nar-label">Entidades</p>
-            {sidebarItems.filter((item) => item.group === 'entities').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className="nar-item">
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-group">
-            <p className="nar-label">Herramientas</p>
-            {sidebarItems.filter((item) => item.group === 'tools').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className="nar-item">
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-footer">
-            <section className="assistant-card">
-              <div className="assistant-top">
-                <Sparkles className="assistant-sparkle" size={18} />
-                <span>IA Assistant</span>
-              </div>
-              <p>Pregúntame sobre narrativas, patrones o coincidencias.</p>
-              <button className="secondary-button" type="button" style={{ width: '100%', justifyContent: 'space-between' }}>
-                <span>Abrir chat</span>
-                <ArrowRight size={16} />
-              </button>
-            </section>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/narrativas-similares" />
 
         <div className="nar-center">
           <header className="nar-topbar">
             <div style={{ width: 220 }} />
             <div className="search-shell">
-              <Search className="search-icon" size={16} />
+              <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
                 placeholder="Buscar narrativa, caso, asegurado, vehículo..."
@@ -715,7 +654,7 @@ export default function NarrativasSimilaresPage() {
                 <span className="bell-badge">6</span>
               </button>
               <button className="icon-chip" type="button" aria-label="Ayuda">
-                <HelpCircle size={18} />
+                <Question size={18} />
               </button>
               <div className="divider" />
               <div className="profile">
@@ -741,7 +680,7 @@ export default function NarrativasSimilaresPage() {
                     En tiempo real
                   </span>
                   <button className="secondary-button" type="button">
-                    <Filter size={16} />
+                    <Funnel size={16} />
                     Filtros
                   </button>
                   <button className="primary-button" type="button">
@@ -749,6 +688,46 @@ export default function NarrativasSimilaresPage() {
                     Ordenar
                   </button>
                 </div>
+              </div>
+
+              <div style={{ background: '#fff', border: '1px solid #d7dfee', borderRadius: 12, padding: 16, display: 'grid', gap: 12 }}>
+                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Buscar narrativas similares en tiempo real</h2>
+                <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Ingresa la descripción del siniestro para comparar con la base de datos usando IA (TF-IDF)</p>
+                <textarea
+                  id="narrative-compare-input"
+                  value={compareText}
+                  onChange={e => setCompareText(e.target.value)}
+                  placeholder="Describe el siniestro aquí... Ej: El vehículo fue impactado por detrás mientras estaba detenido en el semáforo..."
+                  style={{ width: '100%', minHeight: 80, padding: '10px 14px', borderRadius: 10, border: '1px solid #d7dfee', fontFamily: 'IBM Plex Sans, sans-serif', fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }}
+                />
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button
+                    id="btn-buscar-similares"
+                    onClick={handleCompare}
+                    disabled={comparing || !compareText.trim()}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 40, padding: '0 18px', borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 700, fontSize: 14, cursor: comparing ? 'wait' : 'pointer', opacity: (!compareText.trim() || comparing) ? 0.6 : 1 }}
+                  >
+                    {comparing ? 'Buscando...' : '🔍 Buscar similares'}
+                  </button>
+                  {compareError && <span style={{ color: '#dc2626', fontSize: 13 }}>{compareError}</span>}
+                </div>
+                {compareResults.length > 0 && (
+                  <div>
+                    <p style={{ margin: '8px 0 6px', fontWeight: 700, fontSize: 13 }}>Resultados ({compareResults.length} narrativas similares encontradas):</p>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {compareResults.map((r, i) => (
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 13 }}>
+                          <div>
+                            <strong style={{ fontFamily: 'JetBrains Mono, monospace' }}>{r.id}</strong>
+                            <p style={{ margin: '2px 0 0', color: '#64748b', fontSize: 12 }}>{r.descripcion_preview}...</p>
+                          </div>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 800, color: r.score_similitud > 80 ? '#dc2626' : r.score_similitud > 60 ? '#ea580c' : '#16a34a' }}>{r.score_similitud}%</span>
+                          <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: r.nivel === 'Alta' ? 'rgba(220,38,38,.1)' : r.nivel === 'Media' ? 'rgba(234,88,12,.1)' : 'rgba(22,163,74,.1)', color: r.nivel === 'Alta' ? '#dc2626' : r.nivel === 'Media' ? '#ea580c' : '#16a34a' }}>{r.nivel}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="kpi-grid">
@@ -773,7 +752,7 @@ export default function NarrativasSimilaresPage() {
 
                 <button className="secondary-button" type="button">
                   Ordenar por: Similitud (mayor)
-                  <ChevronDown size={14} />
+                  <CaretDown size={14} />
                 </button>
               </div>
 
@@ -822,8 +801,8 @@ export default function NarrativasSimilaresPage() {
                           </div>
                           <div className="mini-actions">
                             <button className="mini-action" type="button" aria-label="Ver detalle"><Eye size={15} /></button>
-                            <button className="mini-action" type="button" aria-label="Vincular"><Link2 size={15} /></button>
-                            <button className="mini-action" type="button" aria-label="Documento"><ClipboardList size={15} /></button>
+                            <button className="mini-action" type="button" aria-label="Vincular"><Link size={15} /></button>
+                            <button className="mini-action" type="button" aria-label="Documento"><ClipboardText size={15} /></button>
                           </div>
                         </div>
                       ))}

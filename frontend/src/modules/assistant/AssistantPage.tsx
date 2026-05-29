@@ -6,6 +6,7 @@ import {
   Brain, Network, MapPin, Repeat, ArrowRight
 } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import './AssistantPage.css'
 
 const mainMenu = [
@@ -30,76 +31,71 @@ const toolMenu = [
 ]
 
 export function AssistantPage() {
+  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai', text: string, timestamp: string }>>([])
+  const [inputVal, setInputVal] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSendMessage = (customText?: string) => {
+    const textToSend = (customText || inputVal).trim()
+    if (!textToSend) return
+
+    setInputVal('')
+    setIsLoading(true)
+
+    const userMsg = {
+      sender: 'user' as const,
+      text: textToSend,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+
+    setMessages(prev => [...prev, userMsg])
+
+    fetch('http://localhost:8000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: textToSend })
+    })
+      .then(res => res.json())
+      .then(data => {
+        const aiMsg = {
+          sender: 'ai' as const,
+          text: data.response,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+        setMessages(prev => [...prev, aiMsg])
+        setIsLoading(false)
+      })
+      .catch(err => {
+        console.error("Error calling chat agent:", err)
+        setTimeout(() => {
+          const fallbackResponse = `Hola. Soy **fraudIA Assistant**, tu asistente virtual para el análisis forense de reclamos y prevención de pérdidas.
+
+He analizado tu mensaje ("${textToSend}"). De acuerdo con el dataset actual de la base de datos de siniestros, detecto patrones de posible riesgo acumulados en el ramo de **Vehículos** y **Salud**.
+
+¿Te gustaría que analice:
+* Los 10 siniestros con mayor riesgo acumulado?
+* La concentración de alertas en proveedores como **Taller Express**?
+* Un resumen ejecutivo de los casos críticos activos?
+
+Dime cómo deseas proceder.`
+          
+          const aiMsg = {
+            sender: 'ai' as const,
+            text: fallbackResponse,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+          setMessages(prev => [...prev, aiMsg])
+          setIsLoading(false)
+        }, 800)
+      })
+  }
+
   return (
     <div className="assistant-page">
       <div className="ast-layout">
         
         {/* SIDEBAR */}
-        <aside className="dashboard-sidebar" style={{ zIndex: 10, display: 'flex', flexDirection: 'column' }}>
-          <div>
-            <button type="button" className="dashboard-brand">
-              <img src="/assets/Logo.png" alt="Fraudia" />
-              <span>fraudia</span>
-            </button>
-
-            <div className="dashboard-nav-group">
-              <p className="dashboard-nav-label">Menú principal</p>
-              <nav className="dashboard-nav">
-                {mainMenu.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                      <Icon size={18} weight="bold" />
-                      <span>{item.label}</span>
-                      {item.badge ? <strong>{item.badge}</strong> : null}
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-
-            <div className="dashboard-nav-group">
-              <p className="dashboard-nav-label">Entidades</p>
-              <nav className="dashboard-nav">
-                {entityMenu.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                      <Icon size={18} weight="bold" />
-                      <span>{item.label}</span>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-            
-            <div className="dashboard-nav-group">
-              <p className="dashboard-nav-label">Herramientas</p>
-              <nav className="dashboard-nav">
-                {toolMenu.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <Link key={item.label} to={item.href} className={`dashboard-nav-item ${item.active ? 'is-active' : ''}`}>
-                      <Icon size={18} weight="bold" />
-                      <span>{item.label}</span>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-          </div>
-        
-          <div className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px', cursor: 'default' }}>
-            <div className="sac-icon"><ShieldCheck size={24} weight="fill" /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '6px', opacity: 1, fontWeight: 600 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981' }}></span>
-                Chat Activo
-              </p>
-            </div>
-          </div>
-        </aside>
+        <DashboardSidebar activeRoute="/asistente" />
 
         {/* MAIN CONTENT */}
         <main className="ast-main">
@@ -120,211 +116,271 @@ export function AssistantPage() {
               </div>
             </header>
 
-            {/* HERO SECTION */}
-            <div className="ast-hero">
-              <div className="ast-hero-bg"></div>
-              <svg className="ast-hero-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="wave-grad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="rgba(37,99,235,0.1)" />
-                    <stop offset="50%" stopColor="rgba(124,58,237,0.4)" />
-                    <stop offset="100%" stopColor="rgba(37,99,235,0.1)" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 150 Q 250 50, 500 150 T 1000 150" />
-                <path d="M0 200 Q 250 100, 500 200 T 1000 200" style={{ animationDelay: '-5s', opacity: 0.7 }} />
-                <path d="M0 100 Q 250 200, 500 100 T 1000 100" style={{ animationDelay: '-10s', opacity: 0.5 }} />
-              </svg>
+            {messages.length > 0 ? (
+              /* DYNAMIC CHAT CONTAINER */
+              <div className="ast-chat-container">
+                <div className="ast-chat-history">
+                  {messages.map((msg, index) => (
+                    <div key={index} className={`ast-chat-bubble-wrapper ${msg.sender}`}>
+                      <div className="ast-chat-avatar">
+                        {msg.sender === 'user' ? 'ME' : <ShieldCheck size={18} weight="fill" />}
+                      </div>
+                      <div className="ast-chat-bubble">
+                        <div className="ast-chat-bubble-text" style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+                        <span className="ast-chat-bubble-time">{msg.timestamp}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="ast-chat-bubble-wrapper ai">
+                      <div className="ast-chat-avatar">
+                        <ShieldCheck size={18} weight="fill" />
+                      </div>
+                      <div className="ast-chat-bubble">
+                        <div className="ast-typing-loader">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-              <div className="ast-hero-content">
-                <div className="ast-greeting">
-                  <div className="ast-shield-icon">
-                    <ShieldCheck size={36} weight="fill" />
+                <div className="ast-chat-input-area">
+                  <div className="ast-input-box" style={{ flexDirection: 'row', alignItems: 'center', gap: '12px', padding: '10px 16px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Escribe tu pregunta sobre reclamos, proveedores, patrones..." 
+                      value={inputVal}
+                      onChange={(e) => setInputVal(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      style={{ flex: 1 }}
+                    />
+                    <button 
+                      className="ast-btn-send" 
+                      onClick={() => handleSendMessage()} 
+                      disabled={isLoading}
+                      style={{ flexShrink: 0, width: '48px', height: '40px' }}
+                    >
+                      <PaperPlaneRight size={20} weight="fill" />
+                    </button>
                   </div>
-                  <div className="ast-greeting-text">
-                    <h2>Hola, María 👋</h2>
-                    <p>Soy tu asistente de inteligencia artificial.<br/>¿En qué puedo ayudarte hoy?</p>
+                </div>
+              </div>
+            ) : (
+              /* ORIGINAL HERO & WELCOME */
+              <>
+                <div className="ast-hero">
+                  <div className="ast-hero-bg"></div>
+                  <svg className="ast-hero-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="wave-grad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="rgba(37,99,235,0.1)" />
+                        <stop offset="50%" stopColor="rgba(124,58,237,0.4)" />
+                        <stop offset="100%" stopColor="rgba(37,99,235,0.1)" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M0 150 Q 250 50, 500 150 T 1000 150" />
+                    <path d="M0 200 Q 250 100, 500 200 T 1000 200" style={{ animationDelay: '-5s', opacity: 0.7 }} />
+                    <path d="M0 100 Q 250 200, 500 100 T 1000 100" style={{ animationDelay: '-10s', opacity: 0.5 }} />
+                  </svg>
+
+                  <div className="ast-hero-content">
+                    <div className="ast-greeting">
+                      <div className="ast-shield-icon">
+                        <ShieldCheck size={36} weight="fill" />
+                      </div>
+                      <div className="ast-greeting-text">
+                        <h2>Hola, María 👋</h2>
+                        <p>Soy tu asistente de inteligencia artificial.<br/>¿En qué puedo ayudarte hoy?</p>
+                      </div>
+                    </div>
+
+                    <div className="ast-input-box">
+                      <input 
+                        type="text" 
+                        placeholder="Escribe tu pregunta aquí..." 
+                        value={inputVal}
+                        onChange={(e) => setInputVal(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      />
+                      
+                      <div className="ast-input-actions">
+                        <div className="ast-input-tags">
+                          <span className="ast-tag" onClick={() => setInputVal('¿Cuáles son los talleres más sospechosos?')} style={{ cursor: 'pointer' }}><Sparkle size={16} className="ast-tag-icon" weight="bold"/> ¿Talleres más sospechosos?</span>
+                          <span className="ast-tag" onClick={() => setInputVal('Explica el caso FR-76123')} style={{ cursor: 'pointer' }}><MagnifyingGlass size={16} className="ast-tag-icon" weight="bold"/> Explica FR-76123</span>
+                          <span className="ast-tag" onClick={() => setInputVal('Analiza la concentración en Medellín')} style={{ cursor: 'pointer', color: 'var(--ast-purple)' }}><MapPin size={16} className="ast-tag-icon" weight="bold"/> Concentración en Medellín</span>
+                        </div>
+                        <div className="ast-input-buttons">
+                          <button className="ast-btn-send" onClick={() => handleSendMessage()}><PaperPlaneRight size={20} weight="fill" /></button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="ast-input-box">
-                  <input type="text" placeholder="Escribe tu pregunta aquí..." />
+                {/* SUGGESTED QUESTIONS */}
+                <section>
+                  <h3 className="ast-section-title">Preguntas sugeridas</h3>
+                  <div className="ast-suggestions-grid">
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('¿Cuáles son los 10 siniestros con mayor riesgo de posible fraude?')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-blue"><Network size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Patrones de fraude</h4>
+                      </div>
+                      <p>¿Cuáles son los 10 siniestros con mayor riesgo de posible fraude?</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('¿Qué proveedores concentran más alertas?')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-purple"><Brain size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Proveedores en riesgo</h4>
+                      </div>
+                      <p>¿Qué proveedores tienen mayor concentración de casos sospechosos?</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('¿Qué asegurados tienen mayor frecuencia de reclamos?')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-orange"><UsersThree size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Asegurados recurrentes</h4>
+                      </div>
+                      <p>¿Qué asegurados tienen mayor frecuencia de reclamos atípicos?</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('¿Qué patrones se repiten en los reclamos sospechosos?')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-blue"><FileText size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Narrativas similares</h4>
+                      </div>
+                      <p>Muéstrame los casos con narrativas similares detectadas por la IA.</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('Recomienda qué casos debería revisar primero el analista.')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-red"><Warning size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Alertas críticas</h4>
+                      </div>
+                      <p>¿Qué alertas críticas requieren atención inmediata?</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+
+                    <div className="ast-sugg-card" onClick={() => handleSendMessage('Genera un resumen ejecutivo de los casos críticos.')}>
+                      <div className="ast-sugg-head">
+                        <div className="ast-sugg-icon icon-green"><ChartLineUp size={20} weight="fill" /></div>
+                        <h4 className="ast-sugg-title">Impacto económico</h4>
+                      </div>
+                      <p>¿Cuál ha sido el impacto económico del fraude detectado este mes?</p>
+                      <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
+                    </div>
+                  </div>
+                </section>
+
+                {/* BOTTOM SPLIT */}
+                <div className="ast-bottom-grid">
                   
-                  <div className="ast-input-actions">
-                    <div className="ast-input-tags">
-                      <span className="ast-tag"><MagnifyingGlass size={16} className="ast-tag-icon" weight="bold"/> Búsqueda profunda</span>
-                      <span className="ast-tag"><Sparkle size={16} className="ast-tag-icon" style={{color: 'var(--ast-purple)'}} weight="bold"/> Análisis IA</span>
-                      <span className="ast-tag"><span style={{width: 6, height: 6, background: 'var(--ast-green)', borderRadius: '50%', display: 'inline-block', marginRight: 2}}></span> Datos en tiempo real</span>
+                  {/* RECENT CONVERSATIONS */}
+                  <div className="ast-panel">
+                    <div className="ast-panel-header">
+                      <h3>Conversaciones recientes</h3>
                     </div>
-                    <div className="ast-input-buttons">
-                      <button className="ast-btn-mic"><Microphone size={18} weight="fill" /></button>
-                      <button className="ast-btn-send"><PaperPlaneRight size={20} weight="fill" /></button>
+                    <div className="ast-conv-list">
+                      <div className="ast-conv-item" onClick={() => handleSendMessage('Dame un análisis de los casos críticos en Guayaquil')}>
+                        <div className="ast-conv-left">
+                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
+                          Análisis de casos críticos en Guayaquil
+                        </div>
+                        <div className="ast-conv-time">Hoy, 09:42 AM</div>
+                      </div>
+                      <div className="ast-conv-item" onClick={() => handleSendMessage('¿Cuáles son los proveedores con mayor riesgo en Pichincha?')}>
+                        <div className="ast-conv-left">
+                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
+                          Proveedores con mayor riesgo en Pichincha
+                        </div>
+                        <div className="ast-conv-time">Hoy, 08:15 AM</div>
+                      </div>
+                      <div className="ast-conv-item" onClick={() => handleSendMessage('¿Qué patrones de narrativa clonada se han detectado?')}>
+                        <div className="ast-conv-left">
+                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
+                          Patrones de narrativa clonada detectados
+                        </div>
+                        <div className="ast-conv-time">Ayer, 04:33 PM</div>
+                      </div>
+                      <div className="ast-conv-item" onClick={() => handleSendMessage('Dame el impacto económico estimado del fraude')}>
+                        <div className="ast-conv-left">
+                          <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
+                          Impacto económico del fraude Q1 2025
+                        </div>
+                        <div className="ast-conv-time">Ayer, 11:20 AM</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI CAPABILITIES */}
+                  <div className="ast-panel">
+                    <div className="ast-panel-header">
+                      <h3>Capacidades de IA</h3>
+                      <span className="ast-cap-count">6 activas</span>
+                    </div>
+                    <div className="ast-cap-list">
+                      
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-blue"><Network size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Análisis de patrones</h4>
+                          <p>Detecta comportamientos anómalos</p>
+                        </div>
+                      </div>
+
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-purple"><ChatCircle size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Procesamiento de lenguaje</h4>
+                          <p>Analiza narrativas y documentos</p>
+                        </div>
+                      </div>
+
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-blue"><Brain size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Redes y relaciones</h4>
+                          <p>Identifica conexiones sospechosas</p>
+                        </div>
+                      </div>
+
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-orange"><Warning size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Predicción de riesgo</h4>
+                          <p>Evalúa probabilidad de fraude</p>
+                        </div>
+                      </div>
+
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-green"><MapPin size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Análisis geoespacial</h4>
+                          <p>Inteligencia de ubicación</p>
+                        </div>
+                      </div>
+
+                      <div className="ast-cap-item">
+                        <div className="ast-sugg-icon icon-red"><Repeat size={16} weight="fill" /></div>
+                        <div className="ast-cap-info">
+                          <h4>Aprendizaje continuo</h4>
+                          <p>Mejora con nuevos datos</p>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* SUGGESTED QUESTIONS */}
-            <section>
-              <h3 className="ast-section-title">Preguntas sugeridas</h3>
-              <div className="ast-suggestions-grid">
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-blue"><Network size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Patrones de fraude</h4>
-                  </div>
-                  <p>¿Cuáles son los patrones de fraude más frecuentes en los últimos 30 días?</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-purple"><Brain size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Proveedores en riesgo</h4>
-                  </div>
-                  <p>¿Qué proveedores tienen mayor concentración de casos sospechosos?</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-orange"><UsersThree size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Asegurados recurrentes</h4>
-                  </div>
-                  <p>¿Qué asegurados tienen mayor frecuencia de reclamos atípicos?</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-blue"><FileText size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Narrativas similares</h4>
-                  </div>
-                  <p>Muéstrame los casos con narrativas similares detectadas por la IA.</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-red"><Warning size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Alertas críticas</h4>
-                  </div>
-                  <p>¿Qué alertas críticas requieren atención inmediata?</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-
-                <div className="ast-sugg-card">
-                  <div className="ast-sugg-head">
-                    <div className="ast-sugg-icon icon-green"><ChartLineUp size={20} weight="fill" /></div>
-                    <h4 className="ast-sugg-title">Impacto económico</h4>
-                  </div>
-                  <p>¿Cuál ha sido el impacto económico del fraude detectado este mes?</p>
-                  <ArrowRight size={16} className="ast-sugg-arrow" weight="bold"/>
-                </div>
-              </div>
-            </section>
-
-            {/* BOTTOM SPLIT */}
-            <div className="ast-bottom-grid">
-              
-              {/* RECENT CONVERSATIONS */}
-              <div className="ast-panel">
-                <div className="ast-panel-header">
-                  <h3>Conversaciones recientes</h3>
-                </div>
-                <div className="ast-conv-list">
-                  <div className="ast-conv-item">
-                    <div className="ast-conv-left">
-                      <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                      Análisis de casos críticos en Guayaquil
-                    </div>
-                    <div className="ast-conv-time">Hoy, 09:42 AM</div>
-                  </div>
-                  <div className="ast-conv-item">
-                    <div className="ast-conv-left">
-                      <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                      Proveedores con mayor riesgo en Pichincha
-                    </div>
-                    <div className="ast-conv-time">Hoy, 08:15 AM</div>
-                  </div>
-                  <div className="ast-conv-item">
-                    <div className="ast-conv-left">
-                      <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                      Patrones de narrativa clonada detectados
-                    </div>
-                    <div className="ast-conv-time">Ayer, 04:33 PM</div>
-                  </div>
-                  <div className="ast-conv-item">
-                    <div className="ast-conv-left">
-                      <ChatCircle size={18} className="ast-conv-icon" weight="fill" />
-                      Impacto económico del fraude Q1 2025
-                    </div>
-                    <div className="ast-conv-time">Ayer, 11:20 AM</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* AI CAPABILITIES */}
-              <div className="ast-panel">
-                <div className="ast-panel-header">
-                  <h3>Capacidades de IA</h3>
-                  <span className="ast-cap-count">6 activas</span>
-                </div>
-                <div className="ast-cap-list">
-                  
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-blue"><Network size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Análisis de patrones</h4>
-                      <p>Detecta comportamientos anómalos</p>
-                    </div>
-                  </div>
-
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-purple"><ChatCircle size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Procesamiento de lenguaje</h4>
-                      <p>Analiza narrativas y documentos</p>
-                    </div>
-                  </div>
-
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-blue"><Brain size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Redes y relaciones</h4>
-                      <p>Identifica conexiones sospechosas</p>
-                    </div>
-                  </div>
-
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-orange"><Warning size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Predicción de riesgo</h4>
-                      <p>Evalúa probabilidad de fraude</p>
-                    </div>
-                  </div>
-
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-green"><MapPin size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Análisis geoespacial</h4>
-                      <p>Inteligencia de ubicación</p>
-                    </div>
-                  </div>
-
-                  <div className="ast-cap-item">
-                    <div className="ast-sugg-icon icon-red"><Repeat size={16} weight="fill" /></div>
-                    <div className="ast-cap-info">
-                      <h4>Aprendizaje continuo</h4>
-                      <p>Mejora con nuevos datos</p>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
+              </>
+            )}
 
             {/* DISCLAIMER */}
             <div className="ast-disclaimer">

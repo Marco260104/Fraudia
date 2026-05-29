@@ -1,35 +1,37 @@
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom'
 import type { CSSProperties, ComponentType, MutableRefObject, ReactNode } from 'react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
+import { API_BASE_URL } from '../../config/api'
 import 'leaflet/dist/leaflet.css'
 import {
-  AlertTriangle,
+  Warning,
   ArrowRight,
   Bell,
-  Building2,
+  Buildings,
   Calculator,
   Car,
   Crosshair,
-  Download,
+  DownloadSimple,
   FileText,
-  Flame,
-  HelpCircle,
-  Home,
-  Layers3,
-  Map,
+  Fire,
+  Question,
+  House,
+  Stack,
+  MapTrifold,
   MapPin,
-  Network,
-  RefreshCw,
-  Search,
-  Settings,
+  Graph,
+  ArrowsClockwise,
+  MagnifyingGlass,
+  Gear,
   Shield,
   SlidersHorizontal,
-  Sparkles,
-  ChevronDown,
+  Sparkle,
+  CaretDown,
   Users,
   Wrench,
   ShieldCheck
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Map as LeafletMap, LeafletMouseEvent } from 'leaflet'
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip as LeafletTooltip, useMap } from 'react-leaflet'
@@ -55,7 +57,7 @@ const LeafletTooltipLayer = LeafletTooltip as unknown as ComponentType<RelaxedLe
 
 type SidebarItem = {
   label: string
-  icon: typeof Home
+  icon: typeof House
   href: string
   badge?: string
   group: 'main' | 'entities' | 'tools'
@@ -104,18 +106,18 @@ type MapPoint = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: Home, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: AlertTriangle, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
+  { label: 'Casos críticos', icon: Warning, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: Map, href: '/mapa-siniestros', group: 'main' },
+  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
   { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
+  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Calculator, href: '/calculadora', group: 'tools' },
   { label: 'Reportes Inteligentes', icon: FileText, href: '/reportes', group: 'tools' },
-  { label: 'Configuración', icon: Settings, href: '/configuracion', group: 'tools' },
+  { label: 'Configuración', icon: Gear, href: '/configuracion', group: 'tools' },
 ]
 
 const sparkData = {
@@ -141,7 +143,7 @@ const sparkConfigs: SparkConfig[] = [
     title: 'Alta concentración',
     value: '312',
     subtitle: 'Zonas críticas',
-    icon: Flame,
+    icon: Fire,
     iconTone: 'orange',
     stroke: '#ea580c',
     dataKey: 'concentracion',
@@ -151,7 +153,7 @@ const sparkConfigs: SparkConfig[] = [
     title: 'Ciudades activas',
     value: '18',
     subtitle: 'Con siniestros hoy',
-    icon: Building2,
+    icon: Buildings,
     iconTone: 'violet',
     stroke: '#7c3aed',
     dataKey: 'ciudades',
@@ -238,14 +240,14 @@ const patternCards = [
     title: 'Redes colaborativas',
     value: 42,
     delta: '↑ 12% vs ayer',
-    icon: Network,
+    icon: Graph,
     tone: 'blue',
   },
   {
     title: 'Siniestros recurrentes',
     value: 198,
     delta: '↑ 22% vs ayer',
-    icon: RefreshCw,
+    icon: ArrowsClockwise,
     tone: 'green',
   },
   {
@@ -269,14 +271,14 @@ const alerts = [
     title: 'Nueva zona crítica detectada',
     subtitle: 'Sector La 80 - Medellín',
     time: '09:42',
-    icon: AlertTriangle,
+    icon: Warning,
     tone: 'red',
   },
   {
     title: 'Concentración inusual de siniestros',
     subtitle: 'Envigado - Zúñiga',
     time: '09:35',
-    icon: Flame,
+    icon: Fire,
     tone: 'orange',
   },
   {
@@ -290,7 +292,7 @@ const alerts = [
     title: 'Patrón recurrente detectado',
     subtitle: 'Bello - Niquía',
     time: '09:21',
-    icon: RefreshCw,
+    icon: ArrowsClockwise,
     tone: 'blue',
   },
 ]
@@ -401,6 +403,7 @@ function MapSyncController({
 
 function EcuadorLayers({
   layers,
+  apiHotspots,
   setTooltip,
 }: {
   layers: {
@@ -410,6 +413,7 @@ function EcuadorLayers({
     individualClaims: boolean
     riskZones: boolean
   }
+  apiHotspots: MapHotspot[]
   setTooltip: (value: TooltipState | ((current: TooltipState) => TooltipState)) => void
 }) {
   const map = useMap()
@@ -445,7 +449,7 @@ function EcuadorLayers({
       ) : null}
 
       {layers.heat
-        ? mapHotspots.filter((hotspot) => hotspot.kind === 'heat').map((hotspot) => (
+        ? apiHotspots.filter((hotspot) => hotspot.kind === 'heat').map((hotspot) => (
             <LeafletCircle
               key={hotspot.id}
               center={[hotspot.lat, hotspot.lng]}
@@ -479,7 +483,7 @@ function EcuadorLayers({
         : null}
 
       {layers.suspiciousShops
-        ? mapHotspots.filter((hotspot) => hotspot.kind === 'shop').map((hotspot) => (
+        ? apiHotspots.filter((hotspot) => hotspot.kind === 'shop').map((hotspot) => (
             <LeafletCircleMarker
               key={hotspot.id}
               center={[hotspot.lat, hotspot.lng]}
@@ -499,7 +503,7 @@ function EcuadorLayers({
         : null}
 
       {layers.providers
-        ? mapHotspots.filter((hotspot) => hotspot.kind === 'provider').map((hotspot) => (
+        ? apiHotspots.filter((hotspot) => hotspot.kind === 'provider').map((hotspot) => (
             <LeafletCircleMarker
               key={hotspot.id}
               center={[hotspot.lat, hotspot.lng]}
@@ -593,6 +597,32 @@ export default function MapaSiniestrosPage() {
       }),
     [searchQuery],
   )
+
+  const [apiHotspots, setApiHotspots] = useState<MapHotspot[]>(mapHotspots)
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/map-claims`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          // Si el backend devuelve { sucursal, lat, lng, total_reclamado, cantidad_siniestros, riesgo }
+          const mapped = data.map((d: any, i: number) => ({
+            id: `api-${i}`,
+            name: d.sucursal || d.label || 'Siniestros',
+            lat: d.lat || (d.y ? -1.65 + (parseFloat(d.y)-50)/10 : -1.65), // fallback aprox
+            lng: d.lng || (d.x ? -78.5 + (parseFloat(d.x)-50)/10 : -78.5),
+            count: d.cantidad_siniestros || parseInt(d.label) || 1,
+            level: d.riesgo || 'Alto',
+            amount: d.total_reclamado ? `$${d.total_reclamado.toLocaleString()}` : '$0',
+            color: d.tone === 'red' || d.riesgo === 'Crítico' ? '#dc2626' : (d.tone === 'orange' ? '#ea580c' : '#3b82f6'),
+            radius: d.cantidad_siniestros > 10 ? 120000 : 60000,
+            kind: 'heat'
+          }))
+          setApiHotspots(mapped)
+        }
+      })
+      .catch(err => console.log('Usando fallback estático para mapas', err))
+  }, [])
 
   const cityRowsComputed = useMemo(() => {
     const variance = [1.04, 1.03, 1.02, 1.01, 1.02]
@@ -723,7 +753,7 @@ export default function MapaSiniestrosPage() {
         .map-shell {
           height: 100vh;
           display: grid;
-          grid-template-columns: 220px minmax(0, 1fr) 280px;
+          grid-template-columns: 260px minmax(0, 1fr) 280px;
           overflow: hidden;
         }
 
@@ -731,16 +761,6 @@ export default function MapaSiniestrosPage() {
         .map-content,
         .map-right {
           min-height: 100vh;
-        }
-
-        .map-sidebar {
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-          padding: 16px 14px;
-          border-right: 1px solid var(--border-subtle);
-          background: rgba(255, 255, 255, 0.92);
-          overflow-y: auto;
         }
 
         .map-brand {
@@ -2039,88 +2059,13 @@ export default function MapaSiniestrosPage() {
       `}</style>
 
       <div className="map-shell">
-        <aside className="map-sidebar">
-          <Link to="/demo" className="map-brand">
-            <span className="map-shield">
-              <Shield size={18} strokeWidth={2.5} />
-            </span>
-            <span className="map-brand-title">fraudia</span>
-          </Link>
-
-          <div className="sidebar-group">
-            <p className="sidebar-label">Menú principal</p>
-            {sidebarItems.filter((item) => item.group === 'main').map((item) => {
-              const Icon = item.icon
-              const active = activeSidebar === item.href
-
-              return (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className={`sidebar-item ${active ? 'is-active' : ''}`}
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  {item.badge ? <span className="sidebar-badge">{item.badge}</span> : null}
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="sidebar-group">
-            <p className="sidebar-label">Entidades</p>
-            {sidebarItems.filter((item) => item.group === 'entities').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className="sidebar-item">
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="sidebar-group">
-            <p className="sidebar-label">Herramientas</p>
-            {sidebarItems.filter((item) => item.group === 'tools').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className="sidebar-item">
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="sidebar-footer">
-            <section className="assistant-card">
-              <div className="assistant-top">
-                <Sparkles className="assistant-sparkle" size={18} />
-                <span>IA Assistant</span>
-              </div>
-              <p>Obtén insights sobre zonas, patrones y redes sospechosas.</p>
-              <button className="outline-button" type="button">
-                <span>Abrir chat</span>
-                <ArrowRight size={16} />
-              </button>
-            </section>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/mapa-siniestros" />
 
         <div className="map-main-wrapper">
           <header className="topbar">
             <div style={{ width: 220 }} />
             <div className="search-shell">
-              <Search className="search-icon" size={16} />
+              <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
                 placeholder="Buscar ubicación, zona, ciudad, taller, asegurado..."
@@ -2136,7 +2081,7 @@ export default function MapaSiniestrosPage() {
                 <span className="bell-badge">8</span>
               </button>
               <button className="icon-chip" type="button" aria-label="Ayuda">
-                <HelpCircle size={18} />
+                <Question size={18} />
               </button>
               <div className="vertical-divider" />
               <div className="profile-chip">
@@ -2170,7 +2115,7 @@ export default function MapaSiniestrosPage() {
                     Filtros
                   </button>
                   <button className="primary-button" type="button" onClick={handleExport}>
-                    <Download size={16} />
+                    <DownloadSimple size={16} />
                     Exportar mapa
                   </button>
                 </div>
@@ -2219,14 +2164,14 @@ export default function MapaSiniestrosPage() {
                     <Crosshair size={15} />
                   </button>
                   <button className="tool-button" type="button" aria-label="Capas">
-                    <Layers3 size={15} />
+                    <Stack size={15} />
                   </button>
                 </div>
 
                 <div className="map-layers">
                   <div className="layers-head">
                     <span>Capas</span>
-                    <ChevronDown size={14} />
+                    <CaretDown size={14} />
                   </div>
                   <label className="layer-check">
                     <input type="checkbox" checked={layers.heat} onChange={() => toggleLayer('heat')} />
@@ -2303,7 +2248,7 @@ export default function MapaSiniestrosPage() {
                       }
                     />
                     <MapSyncController zoom={zoom} mapRef={leafletMapRef} />
-                    <EcuadorLayers layers={layers} setTooltip={setTooltip} />
+                    <EcuadorLayers layers={layers} apiHotspots={apiHotspots} setTooltip={setTooltip} />
                   </LeafletMapContainer>
 
                   <svg ref={mapSvgRef} viewBox="0 0 800 450" className="map-export-snapshot" aria-hidden="true">
@@ -2314,7 +2259,7 @@ export default function MapaSiniestrosPage() {
                       </linearGradient>
                     </defs>
                     <rect x="0" y="0" width="800" height="450" fill="url(#snapshotBg)" />
-                    {mapHotspots.map((item) => {
+                    {apiHotspots.map((item) => {
                       const { x, y } = projectToSvg(item.lat, item.lng)
                       return (
                         <g key={item.id}>

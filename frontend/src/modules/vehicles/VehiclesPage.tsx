@@ -1,38 +1,38 @@
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from '@phosphor-icons/react'
 import { Link, useLocation } from 'react-router-dom';
-
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
   ArrowRight,
   Bell,
-  Building2,
-  CarFront,
-  Download,
-  Filter,
-  HelpCircle,
-  Home,
-  Map,
-  Search,
+  Buildings,
+  Car,
+  DownloadSimple,
+  Funnel,
+  Question,
+  House,
+  MapTrifold,
+  MagnifyingGlass,
   Shield,
-  ShieldAlert,
+  WarningCircle,
   SlidersHorizontal,
-  Sparkles,
+  Sparkle,
   Target,
   Users,
   Wrench,
   FileText,
-  AlertTriangle,
+  Warning,
   Clock,
   Grid,
   XCircle,
   FileDigit,
   ArrowUpRight
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts'
 
 type SidebarItem = {
   label: string
-  icon: typeof Home
+  icon: typeof House
   href: string
   badge?: string
   group: 'main' | 'entities' | 'tools'
@@ -43,18 +43,18 @@ type SparkConfig = {
   value: string
   subtitle: string
   stroke: string
-  icon: typeof CarFront
+  icon: typeof Car
   tone: string
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: Home, href: '/demo', group: 'main' },
-  { label: 'Casos críticos', icon: ShieldAlert, href: '/casos-criticos', badge: '18', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
+  { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
-  { label: 'Mapa de siniestros', icon: Map, href: '/mapa-siniestros', group: 'main' },
+  { label: 'Mapa de siniestros', icon: MapTrifold, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
+  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: Users, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/calculadora', group: 'tools' },
@@ -70,8 +70,8 @@ const kpiDataVehicles = [
 ]
 
 const sparkConfigsVehicles: SparkConfig[] = [
-  { title: 'Vehículos analizados', value: '3,841', subtitle: '↑ 17% vs ayer', stroke: '#2563eb', icon: CarFront, tone: 'blue' },
-  { title: 'Alto riesgo', value: '247', subtitle: '↑ 31% vs ayer', stroke: '#dc2626', icon: AlertTriangle, tone: 'red' },
+  { title: 'Vehículos analizados', value: '3,841', subtitle: '↑ 17% vs ayer', stroke: '#2563eb', icon: Car, tone: 'blue' },
+  { title: 'Alto riesgo', value: '247', subtitle: '↑ 31% vs ayer', stroke: '#dc2626', icon: Warning, tone: 'red' },
   { title: 'Placas duplicadas', value: '38', subtitle: '↑ 9% vs ayer', stroke: '#ea580c', icon: Clock, tone: 'orange' },
   { title: 'VINs irregulares', value: '14', subtitle: '→ 0% vs ayer', stroke: '#7c3aed', icon: Grid, tone: 'violet' },
 ]
@@ -134,22 +134,86 @@ function formatPlaca(placa: string) {
   )
 }
 
+interface BackendVehicle {
+  placa: string
+  total_siniestros: number
+  monto_total: number
+  max_similitud: number
+  coberturas: string
+  alerta: boolean
+}
+
+interface Vehicle {
+  placa: string
+  propietario: string
+  vehiculo: string
+  siniestros: number
+  score: number
+  city: string
+  vin: string
+  amount: string
+  date: string
+}
+
 export default function VehiclesPage() {
   const location = useLocation()
   const [search, setSearch] = useState('')
-  const [selectedPlaca, setSelectedPlaca] = useState('MED 092')
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedPlaca, setSelectedPlaca] = useState('')
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/vehicles')
+      .then(res => res.json())
+      .then((data: BackendVehicle[]) => {
+        if (data && data.length > 0) {
+          const mapped = data.map((v, i) => {
+            const score = Math.round(v.max_similitud * 100)
+            const mockProps = vehiclesData[i % vehiclesData.length] || vehiclesData[0]
+            return {
+              placa: v.placa,
+              propietario: mockProps.propietario,
+              vehiculo: mockProps.vehiculo,
+              siniestros: v.total_siniestros,
+              score: score > 0 ? score : (v.alerta ? 85 : 45),
+              city: mockProps.city,
+              vin: mockProps.vin,
+              amount: `$${(v.monto_total / 1000).toFixed(1)}k`,
+              date: mockProps.date
+            }
+          })
+          setVehicles(mapped)
+          setSelectedPlaca(mapped[0].placa)
+        } else {
+          // Fallback simple
+          const fallback = vehiclesData.map(v => ({ ...v, score: v.score }))
+          setVehicles(fallback)
+          setSelectedPlaca(fallback[0].placa)
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error cargando vehículos:', err)
+        setError('No se pudo conectar al servidor')
+        setLoading(false)
+        const fallback = vehiclesData.map(v => ({ ...v, score: v.score }))
+        setVehicles(fallback)
+        setSelectedPlaca(fallback[0].placa)
+      })
+  }, [])
 
   const filteredVehicles = useMemo(() => {
     const query = search.trim().toLowerCase()
-    return vehiclesData.filter((item) => {
+    return vehicles.filter((item) => {
       if (!query) return true
       return [item.placa, item.propietario, item.vehiculo, item.city].join(' ').toLowerCase().includes(query)
     })
-  }, [search])
+  }, [search, vehicles])
 
   const selected = useMemo(
-    () => filteredVehicles.find((item) => item.placa === selectedPlaca) ?? vehiclesData.find(v => v.placa === 'MED 092')!,
-    [filteredVehicles, selectedPlaca]
+    () => filteredVehicles.find((item) => item.placa === selectedPlaca) ?? vehicles[0] ?? vehiclesData[0],
+    [filteredVehicles, selectedPlaca, vehicles]
   )
 
   return (
@@ -478,85 +542,13 @@ export default function VehiclesPage() {
       `}</style>
 
       <div className="nar-shell">
-        <aside className="nar-sidebar">
-          <Link to="/demo" className="nar-brand">
-            <span className="nar-brand-mark">
-              <Shield size={18} strokeWidth={2.5} />
-            </span>
-            <span>
-              <strong>fraudia</strong>
-              <span>Detección de fraude en siniestros</span>
-            </span>
-          </Link>
-
-          <div className="nar-group">
-            <p className="nar-label">Menú principal</p>
-            {sidebarItems.filter((item) => item.group === 'main').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`nar-item ${location.pathname === item.href ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  {item.badge ? <span className="nar-badge">{item.badge}</span> : null}
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-group">
-            <p className="nar-label">Entidades</p>
-            {sidebarItems.filter((item) => item.group === 'entities').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`nar-item ${location.pathname === item.href ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-group">
-            <p className="nar-label">Herramientas</p>
-            {sidebarItems.filter((item) => item.group === 'tools').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`nar-item ${location.pathname === item.href ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="nar-footer">
-            <section className="assistant-card">
-              <div className="assistant-top">
-                <Sparkles className="assistant-sparkle" size={18} />
-                <span>IA Assistant</span>
-              </div>
-              <p>Analiza patrones en el parque automotor sospechoso.</p>
-              <button className="secondary-button" type="button" style={{ width: '100%', justifyContent: 'space-between' }}>
-                <span>Abrir chat</span>
-                <ArrowRight size={16} />
-              </button>
-            </section>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/vehiculos" />
 
         <div className="nar-center">
           <header className="nar-topbar">
             <div style={{ width: 220 }} />
             <div className="search-shell">
-              <Search className="search-icon" size={16} />
+              <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
                 placeholder="Buscar vehículo, propietario, placa o VIN..."
@@ -572,7 +564,7 @@ export default function VehiclesPage() {
                 <span className="bell-badge">8</span>
               </button>
               <button className="icon-chip" type="button" aria-label="Ayuda">
-                <HelpCircle size={18} />
+                <Question size={18} />
               </button>
               <div className="divider" />
               <div className="profile">
@@ -598,11 +590,11 @@ export default function VehiclesPage() {
                     Tiempo real
                   </span>
                   <button className="secondary-button" type="button">
-                    <Filter size={16} />
+                    <Funnel size={16} />
                     Filtros
                   </button>
                   <button className="primary-button" type="button">
-                    <Download size={16} />
+                    <DownloadSimple size={16} />
                     Exportar
                   </button>
                 </div>
@@ -684,7 +676,7 @@ export default function VehiclesPage() {
             
             <div className="vehicle-info-card">
               <div className="vehicle-icon-wrap">
-                <CarFront size={24} />
+                <Car size={24} />
               </div>
               <div className="vehicle-details-text">
                 <strong>{selected.vehiculo}</strong>
@@ -725,7 +717,7 @@ export default function VehiclesPage() {
                 <strong className="mono">{selected.vin}</strong>
               </div>
               <div className="details-row">
-                <span><ShieldAlert size={14} /> Siniestros</span>
+                <span><WarningCircle size={14} /> Siniestros</span>
                 <strong className="red">{selected.siniestros} eventos</strong>
               </div>
               <div className="details-row">
@@ -767,7 +759,7 @@ export default function VehiclesPage() {
             <h3>Alertas del vehículo</h3>
             <div className="alerts-list">
               <div className="alert-item">
-                <div className="alert-icon red"><AlertTriangle size={16} /></div>
+                <div className="alert-icon red"><Warning size={16} /></div>
                 <div className="alert-content">
                   <strong>Siniestro en zona de alto fraude</strong>
                   <span>Sector La 80 · Medellín</span>

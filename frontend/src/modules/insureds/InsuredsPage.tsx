@@ -1,31 +1,32 @@
 import { useLocation } from 'react-router-dom';
 import { Link } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { DashboardSidebar } from '../../shared/layout/DashboardSidebar'
 import {
   Activity,
   ArrowRight,
   Bell,
-  Building2,
+  Buildings,
   CalendarDays,
-  CarFront,
+  Car,
   CheckCircle2,
-  ChevronDown,
+  CaretDown,
   Clock3,
   FileText,
   Fingerprint,
   HeartPulse,
-  Home,
-  Link2,
+  House,
+  Link,
   MapPin,
   Radar,
-  Search,
+  MagnifyingGlass,
   Shield,
-  Sparkles,
+  Sparkle,
   Target,
   UserRound,
   Wrench,
   ShieldCheck
-} from 'lucide-react'
+} from '@phosphor-icons/react'
 import {
   PolarAngleAxis,
   PolarGrid,
@@ -38,7 +39,7 @@ import {
 
 type SidebarItem = {
   label: string
-  icon: typeof Home
+  icon: typeof House
   href: string
   badge?: string
   group: 'main' | 'entities' | 'tools'
@@ -53,13 +54,13 @@ type IntelligenceBlock = {
 }
 
 const sidebarItems: SidebarItem[] = [
-  { label: 'Centro de inteligencia', icon: Home, href: '/demo', group: 'main' },
+  { label: 'Centro de inteligencia', icon: House, href: '/demo', group: 'main' },
   { label: 'Casos críticos', icon: Shield, href: '/casos-criticos', badge: '18', group: 'main' },
   { label: 'Alertas IA', icon: Bell, href: '/alertas-ia', group: 'main' },
   { label: 'Mapa de siniestros', icon: MapPin, href: '/mapa-siniestros', group: 'main' },
   { label: 'Narrativas similares', icon: FileText, href: '/narrativas-similares', group: 'main' },
-  { label: 'Vehículos', icon: CarFront, href: '/vehiculos', group: 'entities' },
-  { label: 'Proveedores', icon: Building2, href: '/proveedores', group: 'entities' },
+  { label: 'Vehículos', icon: Car, href: '/vehiculos', group: 'entities' },
+  { label: 'Proveedores', icon: Buildings, href: '/proveedores', group: 'entities' },
   { label: 'Asegurados', icon: UserRound, href: '/asegurados', group: 'entities' },
   { label: 'Talleres', icon: Wrench, href: '/talleres', group: 'entities' },
   { label: 'Calculadora de riesgo', icon: Target, href: '/demo', group: 'tools' },
@@ -154,25 +155,95 @@ function ScoreBar({ target }: { target: number }) {
       <div className="trust-score-stack">
         <div className="trust-score-number">{displayScore}</div>
         <div className="trust-score-bar">
-          <span style={{ height: `${Math.max(66, Math.min(100, displayScore / 8.5))}%` }} />
+          <span style={{ height: `${Math.max(20, Math.min(100, displayScore / 9.5))}%` }} />
         </div>
       </div>
-      <div className="trust-score-tag">BAJO RIESGO</div>
-      <p>Comportamiento estable y baja fricción operativa.</p>
+      <div className="trust-score-tag" style={{
+        background: displayScore > 700 ? 'rgba(16,185,129,.1)' : displayScore > 500 ? 'rgba(245,158,11,.1)' : 'rgba(220,38,38,.1)',
+        color: displayScore > 700 ? '#10b981' : displayScore > 500 ? '#ea580c' : '#dc2626',
+        borderColor: displayScore > 700 ? '#bbf7d0' : displayScore > 500 ? '#fed7aa' : '#fecaca',
+      }}>
+        {displayScore > 700 ? 'BAJO RIESGO' : displayScore > 500 ? 'RIESGO MEDIO' : 'ALTO RIESGO'}
+      </div>
+      <p>{displayScore > 700 ? 'Comportamiento estable y baja fricción operativa.' : displayScore > 500 ? 'Riesgo moderado, requiere monitoreo preventivo.' : 'Desviaciones operativas críticas e historial adverso.'}</p>
     </div>
   )
+}
+
+interface Insured {
+  id_asegurado: string
+  nombres_asegurado: string
+  ciudad: string
+  antiguedad_asegurado: number
+  reclamos_ult_12m: number
+  reclamos_historico_total: number
+  perfil_riesgo_historico: string
+  total_siniestros_activos: number
+  nivel_riesgo: string
 }
 
 export default function AseguradosPage() {
   const location = useLocation()
   const [search, setSearch] = useState('')
   const [activeYear] = useState('2025')
-  const selectedProfile = {
+
+  const [insureds, setInsureds] = useState<Insured[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('http://localhost:8000/api/insureds')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setInsureds(data)
+          setSelectedId(data[0].id_asegurado)
+        }
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Error cargando asegurados:', err)
+        setError('No se pudo conectar al servidor')
+        setLoading(false)
+      })
+  }, [])
+
+  const activeInsured = insureds.find(i => i.id_asegurado === selectedId) || null
+
+  const selectedProfile = activeInsured ? {
+    name: activeInsured.nombres_asegurado,
+    role: `Perfil asegurado monitoreado (${activeInsured.perfil_riesgo_historico})`,
+    since: `Cliente antigüedad: ${activeInsured.antiguedad_asegurado} años`,
+    id: activeInsured.id_asegurado,
+  } : {
     name: 'Carlos Méndez',
     role: 'Perfil asegurado monitoreado',
     since: 'Cliente desde 2021',
     id: '#AS-42091',
   }
+
+  const intelligenceBlocks = useMemo(() => {
+    if (!activeInsured) return [
+      { label: 'Frecuencia de reclamos', value: '12%', tone: 'blue' as const, icon: Activity, bars: [24, 40, 32, 48, 38] },
+      { label: 'Consistencia narrativa', value: '94%', tone: 'green' as const, icon: CheckCircle2, bars: [44, 52, 54, 60, 64] },
+      { label: 'Patrón geográfico', value: '88%', tone: 'indigo' as const, icon: MapPin, bars: [28, 36, 45, 50, 52] },
+      { label: 'Tiempo entre incidentes', value: '76%', tone: 'violet' as const, icon: Clock3, bars: [18, 30, 26, 34, 40] },
+      { label: 'Historial operativo', value: '91%', tone: 'amber' as const, icon: Shield, bars: [42, 44, 48, 55, 58] },
+    ]
+
+    const freqVal = activeInsured.reclamos_ult_12m * 20
+    const histVal = activeInsured.reclamos_historico_total * 10
+    const risk = activeInsured.nivel_riesgo
+    
+    return [
+      { label: 'Reclamos 12m', value: `${activeInsured.reclamos_ult_12m}`, tone: (risk === 'alto' ? 'red' : 'blue') as 'red' | 'blue', icon: Activity, bars: [10, 20, 30, 45, freqVal] },
+      { label: 'Consistencia narrativa', value: risk === 'alto' ? '68%' : '94%', tone: (risk === 'alto' ? 'amber' : 'green') as 'amber' | 'green', icon: CheckCircle2, bars: [80, 85, 90, 92, risk === 'alto' ? 68 : 94] },
+      { label: 'Siniestros Activos', value: `${activeInsured.total_siniestros_activos}`, tone: (activeInsured.total_siniestros_activos > 1 ? 'red' : 'indigo') as 'red' | 'indigo', icon: MapPin, bars: [5, 10, 15, 20, activeInsured.total_siniestros_activos * 30] },
+      { label: 'Reclamos Históricos', value: `${activeInsured.reclamos_historico_total}`, tone: 'violet' as const, icon: Clock3, bars: [20, 30, 40, 50, histVal] },
+      { label: 'Perfil de riesgo', value: activeInsured.perfil_riesgo_historico, tone: (risk === 'alto' ? 'red' : risk === 'medio' ? 'amber' : 'green') as 'red' | 'amber' | 'green', icon: Shield, bars: [30, 40, 50, 60, risk === 'alto' ? 90 : risk === 'medio' ? 60 : 25] },
+    ]
+  }, [activeInsured])
 
   const filteredRelations = useMemo(
     () =>
@@ -1258,85 +1329,13 @@ export default function AseguradosPage() {
       `}</style>
 
       <div className="insured-shell">
-        <aside className="insured-sidebar">
-          <Link to="/demo" className="insured-brand">
-            <span className="insured-brand-mark">
-              <Shield size={18} strokeWidth={2.5} />
-            </span>
-            <span>
-              <strong>fraudia</strong>
-              <span>Detección de fraude en siniestros</span>
-            </span>
-          </Link>
-
-          <div className="insured-group">
-            <p className="insured-label">Menú principal</p>
-            {sidebarItems.filter((item) => item.group === 'main').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`insured-item ${location.pathname === item.href ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  {item.badge ? <span className="insured-badge">{item.badge}</span> : null}
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="insured-group">
-            <p className="insured-label">Entidades</p>
-            {sidebarItems.filter((item) => item.group === 'entities').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className={`insured-item ${item.href === '/asegurados' ? 'is-active' : ''}`}>
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="insured-group">
-            <p className="insured-label">Herramientas</p>
-            {sidebarItems.filter((item) => item.group === 'tools').map((item) => {
-              const Icon = item.icon
-              return (
-                <Link key={item.label} to={item.href} className="insured-item">
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              )
-            })}
-          </div>
-
-          <div className="insured-footer">
-            <section className="assistant-card">
-              <div className="assistant-top">
-                <Sparkles className="assistant-sparkle" size={18} />
-                <span>IA Assistant</span>
-              </div>
-              <p>Consulta riesgo conductual, historial y relaciones de confianza.</p>
-              <button className="secondary-button" type="button" style={{ width: '100%', justifyContent: 'space-between' }}>
-                <span>Abrir chat</span>
-                <ArrowRight size={16} />
-              </button>
-            </section>
-          </div>
-        
-          <Link to="/asistente" className="sidebar-assistant-card" style={{ marginTop: 'auto', marginBottom: '16px' }}>
-            <div className="sac-icon"><ShieldCheck size={24} /></div>
-            <div className="sac-info">
-              <h4>IA Assistant <span className="sac-badge">BETA</span></h4>
-              <p>Asistente inteligente</p>
-            </div>
-          </Link>
-        </aside>
+        <DashboardSidebar activeRoute="/asegurados" />
 
         <div className="insured-content">
           <header className="topbar">
             <div style={{ width: 220 }} />
             <div className="search-shell">
-              <Search className="search-icon" size={16} />
+              <MagnifyingGlass className="search-icon" size={16} />
               <input
                 className="search-input"
                 placeholder="Buscar perfil, riesgo, vehículo, taller..."
@@ -1382,11 +1381,43 @@ export default function AseguradosPage() {
                     Perfil activo
                   </span>
                   <button className="secondary-button" type="button">
-                    <ChevronDown size={16} />
+                    <CaretDown size={16} />
                     Más acciones
                   </button>
                 </div>
               </div>
+
+              {loading && <div style={{ padding: 12, background: 'var(--bg-secondary)', borderRadius: 12, border: '1px solid var(--border)', textAlign: 'center', marginBottom: 12 }}>Cargando datos del backend...</div>}
+              {error && <div style={{ padding: 12, background: '#fef2f2', color: '#dc2626', borderRadius: 12, border: '1px solid #fecaca', textAlign: 'center', marginBottom: 12 }}>{error}</div>}
+
+              {insureds.length > 0 && (
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, marginBottom: 12, maxWidth: '100%' }}>
+                  {insureds.map(ins => (
+                    <button
+                      key={ins.id_asegurado}
+                      onClick={() => setSelectedId(ins.id_asegurado)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        border: '1px solid',
+                        borderColor: selectedId === ins.id_asegurado ? 'var(--accent-blue)' : 'var(--border)',
+                        background: selectedId === ins.id_asegurado ? 'rgba(37,99,235,.1)' : 'var(--bg-secondary)',
+                        color: selectedId === ins.id_asegurado ? 'var(--accent-blue)' : 'var(--text-primary)',
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.2s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      👤 {ins.nombres_asegurado} ({ins.reclamos_ult_12m} reclamos)
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <section className="hero">
                 <div className="hero-main">
@@ -1395,9 +1426,12 @@ export default function AseguradosPage() {
                   </div>
 
                   <div className="profile-copy">
-                    <span className="trend-pill">
-                      <Sparkles size={14} />
-                      Perfil de confianza
+                    <span className="trend-pill" style={{
+                      background: activeInsured?.nivel_riesgo === 'alto' ? 'rgba(220,38,38,.08)' : activeInsured?.nivel_riesgo === 'medio' ? 'rgba(245,158,11,.08)' : 'rgba(16, 185, 129, 0.08)',
+                      color: activeInsured?.nivel_riesgo === 'alto' ? '#dc2626' : activeInsured?.nivel_riesgo === 'medio' ? '#d97706' : '#047857'
+                    }}>
+                      <Sparkle size={14} />
+                      {activeInsured?.nivel_riesgo === 'alto' ? 'Riesgo Crítico IA' : activeInsured?.nivel_riesgo === 'medio' ? 'Riesgo Moderado' : 'Perfil de confianza'}
                     </span>
                     <h2>{selectedProfile.name}</h2>
                     <p>{selectedProfile.role}</p>
@@ -1411,7 +1445,7 @@ export default function AseguradosPage() {
                   </div>
                 </div>
 
-                <ScoreBar target={842} />
+                <ScoreBar target={activeInsured ? (activeInsured.nivel_riesgo === 'alto' ? 380 : activeInsured.nivel_riesgo === 'medio' ? 640 : 842) : 842} />
               </section>
 
               <section className="block-grid">
@@ -1447,7 +1481,7 @@ export default function AseguradosPage() {
                     </div>
                     <button className="year-switch" type="button">
                       {activeYear}
-                      <ChevronDown size={14} />
+                      <CaretDown size={14} />
                     </button>
                   </div>
 
@@ -1508,7 +1542,7 @@ export default function AseguradosPage() {
                         <h3>Relaciones</h3>
                         <p>Entorno relacionado y puntos de contacto</p>
                       </div>
-                      <Link2 size={16} color="#6366f1" />
+                      <Link size={16} color="#6366f1" />
                     </div>
 
                     <div className="relations-grid">

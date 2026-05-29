@@ -21,7 +21,7 @@ import {
 const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo', active: true },
   { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', badge: '18' },
-  { label: 'Alertas IA', icon: Bell, href: '/demo' },
+  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
   { label: 'Mapa de siniestros', icon: MapTrifold, href: '/demo' },
   { label: 'Narrativas similares', icon: CirclesThree, href: '/demo' },
 ]

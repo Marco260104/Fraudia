@@ -19,7 +19,7 @@ import {
 const mainMenu = [
   { label: 'Centro de inteligencia', icon: House, href: '/demo' },
   { label: 'Casos críticos', icon: WarningCircle, href: '/casos-criticos', active: true, badge: '18' },
-  { label: 'Alertas IA', icon: Bell, href: '/demo' },
+  { label: 'Alertas IA', icon: Bell, href: '/alertas-ia' },
   { label: 'Mapa de siniestros', icon: CirclesThree, href: '/demo' },
   { label: 'Narrativas similares', icon: ShieldCheck, href: '/demo' },
 ]

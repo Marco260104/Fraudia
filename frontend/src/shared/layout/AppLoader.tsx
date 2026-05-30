@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { API_BASE_URL } from '../../config/api'
 
+const PING_URL = `${API_BASE_URL}/api/kpis`
+
 export function AppLoader() {
   const [waking, setWaking] = useState(false)
   const [dots, setDots] = useState('')
@@ -24,28 +26,29 @@ export function AppLoader() {
 
     const ping = async () => {
       const controller = new AbortController()
-      const timeout = window.setTimeout(() => controller.abort(), 3000)
+      const timeout = window.setTimeout(() => controller.abort(), 4000)
       try {
-        await fetch(`${API_BASE_URL}/health`, { signal: controller.signal })
+        const res = await fetch(PING_URL, { signal: controller.signal })
         clearTimeout(timeout)
+        if (!res.ok) throw new Error('not ok')
       } catch (_e) {
         clearTimeout(timeout)
         setWaking(true)
         startDots()
         const retry = async () => {
           try {
-            const res = await fetch(`${API_BASE_URL}/health`)
+            const res = await fetch(PING_URL)
             if (res.ok) {
               stopDots()
               setWaking(false)
             } else {
-              retryTimer = window.setTimeout(retry, 3000)
+              retryTimer = window.setTimeout(retry, 4000)
             }
           } catch (_err) {
-            retryTimer = window.setTimeout(retry, 3000)
+            retryTimer = window.setTimeout(retry, 4000)
           }
         }
-        retryTimer = window.setTimeout(retry, 3000)
+        retryTimer = window.setTimeout(retry, 4000)
       }
     }
 

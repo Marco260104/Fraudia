@@ -1,54 +1,59 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { API_BASE_URL } from '../../../config/api'
 
 export function AppLoader() {
   const [waking, setWaking] = useState(false)
   const [dots, setDots] = useState('')
+  const dotsRef = useRef<number | null>(null)
 
   useEffect(() => {
-    let dotsInterval: ReturnType<typeof setInterval>
-    let timeout: ReturnType<typeof setTimeout>
+    let retryTimer: number | null = null
+
+    const startDots = () => {
+      dotsRef.current = window.setInterval(() => {
+        setDots(d => d.length >= 3 ? '' : d + '.')
+      }, 500)
+    }
+
+    const stopDots = () => {
+      if (dotsRef.current !== null) {
+        clearInterval(dotsRef.current)
+        dotsRef.current = null
+      }
+    }
 
     const ping = async () => {
-      // Intentar despertar el backend con un timeout corto
       const controller = new AbortController()
-      timeout = setTimeout(() => controller.abort(), 3000)
-
+      const timeout = window.setTimeout(() => controller.abort(), 3000)
       try {
         await fetch(`${API_BASE_URL}/health`, { signal: controller.signal })
         clearTimeout(timeout)
-        // Backend respondio rapido, no mostrar pantalla de carga
-      } catch {
+      } catch (_e) {
         clearTimeout(timeout)
-        // Backend tarda (cold start), mostrar pantalla de espera
         setWaking(true)
-        dotsInterval = setInterval(() => {
-          setDots(d => d.length >= 3 ? '' : d + '.')
-        }, 500)
-
-        // Reintentar hasta que responda
+        startDots()
         const retry = async () => {
           try {
             const res = await fetch(`${API_BASE_URL}/health`)
             if (res.ok) {
-              clearInterval(dotsInterval)
+              stopDots()
               setWaking(false)
             } else {
-              setTimeout(retry, 3000)
+              retryTimer = window.setTimeout(retry, 3000)
             }
-          } catch {
-            setTimeout(retry, 3000)
+          } catch (_err) {
+            retryTimer = window.setTimeout(retry, 3000)
           }
         }
-        setTimeout(retry, 3000)
+        retryTimer = window.setTimeout(retry, 3000)
       }
     }
 
     ping()
 
     return () => {
-      clearInterval(dotsInterval)
-      clearTimeout(timeout)
+      stopDots()
+      if (retryTimer !== null) clearTimeout(retryTimer)
     }
   }, [])
 
@@ -72,7 +77,7 @@ export function AppLoader() {
         Despertando servidor{dots}
       </p>
       <p style={{ color: '#94a3b8', fontSize: '13px', margin: 0, textAlign: 'center', maxWidth: '280px' }}>
-        El servidor estuvo inactivo. Esto puede tardar hasta 60 segundos.
+        El servidor estuvo inactivo. Puede tardar hasta 60 segundos.
       </p>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
